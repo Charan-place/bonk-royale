@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bonk-royale",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-09-01",
+  // Served on the custom domain only (no free *.workers.dev address).
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./dist",
+    "run_worker_first": ["/ws/*", "/api/*"],
+    "not_found_handling": "single-page-application"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "MATCH", "class_name": "MatchRoom" },
+      { "name": "PARTY", "class_name": "Party" },
+      { "name": "HUB", "class_name": "UserHub" },
+      { "name": "LIMITER", "class_name": "Limiter" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["MatchRoom", "Party", "UserHub", "Limiter"] }],
+  // The database id is an identifier, not a secret.
+  "d1_databases": [{ "binding": "DB", "database_name": "bonk-db", "database_id": "789c3379-90af-427c-9db5-27ebabb8fb12", "migrations_dir": "migrations" }],
+  // Custom domains: Cloudflare creates the DNS records and certificates on deploy.
+  "routes": [
+    { "pattern": "playbonkroyale.com", "custom_domain": true },
+    { "pattern": "www.playbonkroyale.com", "custom_domain": true }
+  ],
+  "vars": {
+    // Hostnames allowed to open game WebSockets. Not secret. Add portal/preview hosts if needed.
+    "ALLOWED_HOSTS": "playbonkroyale.com,www.playbonkroyale.com,localhost,127.0.0.1,*.workers.dev"
+  },
+  "observability": { "enabled": true }
+}

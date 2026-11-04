@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Bonk Royale - Free Online Party Brawler</title>
+  <meta name="description" content="Flick your cute creature, bonk your friends off a crumbling candy island, and be the last one standing. Free, instant, no download.">
+  <meta name="theme-color" content="#8c5cff">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta property="og:title" content="Bonk Royale - Free Online Party Brawler">
+  <meta property="og:description" content="Flick. Bonk. Win. Play with friends in seconds.">
+  <meta property="og:type" content="website">
+</head>
+<body data-screen="home">
+  <div id="shell">
+    <aside class="rail" aria-label="Advertisement"><div class="ad" data-slot="rail"><span>Advertisement</span></div></aside>
+
+    <main id="stage">
+      <canvas id="gl" aria-label="Bonk Royale arena"></canvas>
+
+      <!-- ================= HUD (in match) ================= -->
+      <div id="hud" hidden>
+        <div class="hud-pill" id="hudLeft"><span id="hudHearts" aria-label="Lives"></span><span class="gem">&#x1F48E;<b id="hudGems">0</b></span></div>
+        <div class="hud-pill center" id="hudCenter"><span><b id="hudAlive">8</b> left</span><span class="sep"></span><span id="hudTime">0:00</span></div>
+        <div id="hudRight">
+          <button class="hud-btn" id="btnSound" type="button" aria-label="Sound">&#x1F50A;</button>
+          <button class="hud-btn" id="btnLeave" type="button" aria-label="Leave match">&#x2715;</button>
+        </div>
+        <ol id="feed" aria-live="polite"></ol>
+        <div id="callouts" aria-live="assertive"></div>
+        <div id="count"></div>
+        <div id="hint" hidden><span class="hand">&#x1F446;</span><b>Drag back &amp; let go to flick!</b></div>
+        <button class="hud-btn big" id="btnEmote" type="button" aria-label="Emotes">&#x1F600;</button>
+        <div class="emote-wheel" id="emoteWheel" hidden></div>
+        <div id="outBar" hidden><b>You're out!</b><span id="outPlace"></span><button class="btn small" id="btnSkip" type="button">See results</button></div>
+        <div id="bubbles"></div>
+      </div>
+
+      <!-- ================= HOME ================= -->
+      <section id="home" class="screen">
+        <header class="top">
+          <button class="me-card" id="meCard" type="button" aria-label="Edit character">
+            <span class="avatar" id="meAvatar"></span>
+            <span class="me-text"><b id="meName">Player</b><span class="lvl"><i id="meLvl">Lv 1</i><span class="xp"><u id="meXp"></u></span></span></span>
+          </button>
+          <div class="wallet">
+            <span class="chip" title="Coins">&#x1FA99; <b id="coins">0</b></span>
+            <button class="hud-btn" id="btnSettings" type="button" aria-label="Settings">&#x2699;&#xFE0F;</button>
+          </div>
+        </header>
+
+        <button class="chip party-chip" id="partyChip" type="button" hidden>&#x1F389; Party <b id="partyChipCode"></b></button>
+        <h1 class="logo" aria-label="Bonk Royale"><span class="l1">BONK</span><span class="l2">ROYALE</span></h1>
+
+        <div class="dock">
+          <div class="modes" role="radiogroup" aria-label="Game mode">
+            <button class="mode on" data-mode="ffa" type="button" role="radio" aria-checked="true">Free for all</button>
+            <button class="mode" data-mode="duel" type="button" role="radio" aria-checked="false">1 vs 1</button>
+            <button class="mode" data-mode="team" type="button" role="radio" aria-checked="false">Teams</button>
+          </div>
+          <button class="btn play" id="btnPlay" type="button">PLAY!</button>
+          <div class="row">
+            <button class="btn alt" id="btnFriends" type="button">&#x1F46B; Friends<i class="dot" id="friendDot" hidden></i></button>
+            <button class="btn alt" id="btnStyle" type="button">&#x1F3A8; Style</button>
+            <button class="btn alt" id="btnGift" type="button">&#x1F381; Gift<i class="dot" id="giftDot" hidden></i></button>
+          </div>
+          <p class="status" id="homeStatus" aria-live="polite"></p>
+          <nav class="foot"><a href="/about.html">About</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Contact</a></nav>
+        </div>
+      </section>
+
+      <!-- ================= RESULTS ================= -->
+      <section id="results" class="screen overlay" hidden>
+        <div class="card">
+          <div class="burst" aria-hidden="true"></div>
+          <div class="trophy" id="resTrophy">&#x1F3C6;</div>
+          <h2 id="resTitle">Victory!</h2>
+          <p class="sub" id="resSub"></p>
+          <div class="stats">
+            <div><span>Bonks</span><b id="resKos">0</b></div>
+            <div><span>Gems</span><b id="resGems">0</b></div>
+            <div><span>Time</span><b id="resTime">0:00</b></div>
+          </div>
+          <div class="reward-row">
+            <span class="chip big">+<b id="resXp">0</b> XP</span>
+            <span class="chip big">&#x1FA99; +<b id="resCoins">0</b></span>
+          </div>
+          <div class="lvlbar"><span id="resLvl">Lv 1</span><span class="xp wide"><u id="resBar"></u></span></div>
+          <p class="levelup" id="resLevelUp"></p>
+          <button class="btn capsule" id="btnCapsule" type="button" hidden><span class="cap">&#x1F381;</span> Open your capsule!</button>
+          <button class="btn alt wide" id="btnAdBonus" type="button" hidden>&#x1F4FA; Watch a short ad for +30 coins</button>
+          <div class="met" id="metBox" hidden><b>Players you met</b><div id="metList"></div></div>
+          <button class="btn play" id="btnRematch" type="button">Play again</button>
+          <button class="btn alt" id="btnResHome" type="button">Home</button>
+        </div>
+      </section>
+
+      <!-- ================= SHEETS ================= -->
+      <section id="styleSheet" class="sheet" hidden>
+        <div class="sheet-head"><b>Your style</b><button class="hud-btn" data-close type="button" aria-label="Close">&#x2715;</button></div>
+        <div class="tabs" role="tablist" id="styleTabs"></div>
+        <div class="grid" id="styleGrid"></div>
+        <div class="namebar"><b id="styleName"></b><button class="btn small alt" id="btnDice" type="button">&#x1F3B2; New name</button></div>
+      </section>
+
+      <section id="lobby" class="screen overlay" hidden>
+        <div class="card">
+          <h2 id="lobbyTitle">Finding players</h2>
+          <p class="sub" id="lobbySub">Bots join if the room is quiet!</p>
+          <div class="lobby-slots" id="lobbySlots"></div>
+          <div class="big-num" id="lobbyCount">&nbsp;</div>
+          <button class="btn alt" id="btnLobbyLeave" type="button">Cancel</button>
+        </div>
+      </section>
+
+      <section id="party" class="screen overlay" hidden>
+        <div class="card">
+          <h2>Party</h2>
+          <div class="codebar"><span>Code <b id="partyCode">-----</b></span><button class="btn small alt" id="btnPartyShare" type="button">&#x1F517; Invite link</button></div>
+          <div class="lobby-slots" id="partySlots"></div>
+          <div class="modes" id="partyModes" role="radiogroup" aria-label="Party game mode">
+            <button class="mode on" data-pmode="ffa" type="button">Brawl</button>
+            <button class="mode" data-pmode="duel" type="button">1 vs 1</button>
+            <button class="mode" data-pmode="team" type="button">Teams</button>
+          </div>
+          <p class="sub" id="partyNote"></p>
+          <button class="btn play" id="btnPartyGo" type="button">START!</button>
+          <div class="row2">
+            <button class="btn alt" id="btnPartyInvite" type="button">&#x1F46B; Invite friends</button>
+            <button class="btn alt" id="btnPartyLeave" type="button">Leave</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="friendsSheet" class="sheet" hidden>
+        <div class="sheet-head"><b>Friends</b><button class="hud-btn" data-close type="button" aria-label="Close">&#x2715;</button></div>
+        <div class="mycode"><span>My code <b id="myCode">BONK-.....</b></span><button class="btn small alt" id="btnCopyCode" type="button">Copy</button></div>
+        <form class="addbar" id="addForm" autocomplete="off">
+          <input id="addInput" maxlength="10" placeholder="BONK-XXXXX" aria-label="Friend code" spellcheck="false" autocapitalize="characters">
+          <button class="btn small" type="submit">Add</button>
+        </form>
+        <div class="flist" id="friendList"></div>
+      </section>
+
+      <section id="capsuleView" class="screen overlay" hidden>
+        <div class="capbox">
+          <div class="cap-big" id="capBig">&#x1F381;</div>
+          <div class="reveal" id="capReveal" hidden>
+            <div class="rar" id="capRarity">Rare</div>
+            <div class="item-icon" id="capIcon"></div>
+            <h3 id="capName">Item</h3>
+            <p id="capNote"></p>
+            <button class="btn play" id="btnCapDone" type="button">Awesome!</button>
+          </div>
+          <p class="hintline" id="capHint">Tap the capsule!</p>
+        </div>
+      </section>
+
+      <div id="toasts" aria-live="polite"></div>
+    </main>
+
+    <aside class="rail" aria-label="Advertisement"><div class="ad" data-slot="rail"><span>Advertisement</span></div></aside>
+  </div>
+  <div class="ad banner" data-slot="banner"><span>Advertisement</span></div>
+  <noscript><p style="padding:2rem">Bonk Royale needs JavaScript.</p></noscript>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

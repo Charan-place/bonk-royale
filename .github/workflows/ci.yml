@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop, 'release/**']
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Release branches only take code that has already been through main.
+  release-gate:
+    if: github.event_name == 'pull_request' && startsWith(github.base_ref, 'release/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: PRs into release branches must come from main
+        run: |
+          if [ "${{ github.head_ref }}" != "main" ]; then
+            echo "::error::Release branches only accept pull requests from main (this one is from '${{ github.head_ref }}')."
+            exit 1
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Simulation tests
+        run: npm test
+      - name: Build client
+        run: npm run build
+      - name: Validate the Worker bundle (no deploy)
+        run: npx wrangler deploy --dry-run --outdir .wrangler/dry
