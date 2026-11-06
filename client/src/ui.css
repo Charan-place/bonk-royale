@@ -227,3 +227,13 @@ html:has(.doc), body:has(.doc) { overflow: auto; }
 .mock-ad { position: fixed; inset: 0; z-index: 99; display: grid; place-items: center; background: rgba(43, 33, 80, 0.94); color: #fff; font-size: 22px; font-weight: 800; }
 .mock-ad div { display: grid; gap: 8px; text-align: center; }
 .mock-ad span { font-size: 72px; color: var(--sun); }
+
+/* progress sheet */
+.prog-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.prog-who { display: grid; gap: 4px; flex: 1; font-size: 20px; }
+.prog-who small { font-weight: 700; color: var(--ink-soft); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.stat { background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 6px 4px; text-align: center; }
+.stat b { display: block; font-size: 22px; line-height: 1.1; }
+.stat span { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+.save-box { background: #fff4c2; border: 3px dashed var(--ink); border-radius: 16px; padding: 8px 12px; margin-bottom: 10px; font-weight: 700; font-size: 15px; }

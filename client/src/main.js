@@ -1070,7 +1070,54 @@ $('btnStyle').addEventListener('click', () => {
   $('styleSheet').hidden = false;
   $('friendsSheet').hidden = true;
 });
-$('meCard').addEventListener('click', () => $('btnStyle').click());
+function renderProgress() {
+  const d = store.data;
+  const p = levelProgress(d.xp);
+  const total = KINDS.length + COLORS.length + HATS.length + TRAILS.length;
+  const av = $('progAvatar');
+  av.textContent = KIND_ICONS[d.kind];
+  av.style.background = COLORS[d.col].hex;
+  $('progName').textContent = cardName(d);
+  $('progLvl').textContent = `Level ${p.lv}`;
+  $('progXp').style.width = `${Math.round(p.f * 100)}%`;
+  $('progNext').textContent = `${Math.max(0, p.hi - d.xp)} XP to level ${p.lv + 1}`;
+  const rate = d.matches ? Math.round((d.wins / d.matches) * 100) : 0;
+  const stats = [
+    [d.matches, 'Matches'],
+    [d.wins, 'Wins'],
+    [`${rate}%`, 'Win rate'],
+    [d.kos, 'Bonks'],
+    [`${d.streak || 0} \u{1F525}`, 'Day streak'],
+    [`${d.owned.length}/${total}`, 'Collected'],
+  ];
+  $('progStats').replaceChildren(
+    ...stats.map(([v, l]) => {
+      const c = document.createElement('div');
+      c.className = 'stat';
+      const b = document.createElement('b');
+      b.textContent = v;
+      const sp = document.createElement('span');
+      sp.textContent = l;
+      c.append(b, sp);
+      return c;
+    })
+  );
+  $('saveBox').textContent = api.remote
+    ? 'Your progress is saved to this device. Sign in to keep it safe and play anywhere!'
+    : 'Offline practice: progress stays on this device.';
+}
+function openProgress() {
+  sfx.click();
+  renderProgress();
+  $('progressSheet').hidden = false;
+  $('styleSheet').hidden = true;
+  $('friendsSheet').hidden = true;
+}
+$('meCard').addEventListener('click', openProgress);
+$('btnProgStyle').addEventListener('click', () => {
+  $('progressSheet').hidden = true;
+  $('btnStyle').click();
+});
 for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => (b.closest('.sheet').hidden = true));
 $('btnDice').addEventListener('click', async () => {
   sfx.click();

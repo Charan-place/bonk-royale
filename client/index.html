@@ -109,6 +109,17 @@
         <div class="namebar"><b id="styleName"></b><button class="btn small alt" id="btnDice" type="button">&#x1F3B2; New name</button></div>
       </section>
 
+      <section id="progressSheet" class="sheet" hidden>
+        <div class="sheet-head"><b>My progress</b><button class="hud-btn" data-close type="button" aria-label="Close">&#x2715;</button></div>
+        <div class="prog-top">
+          <span class="avatar" id="progAvatar"></span>
+          <div class="prog-who"><b id="progName"></b><span id="progLvl"></span><span class="xp wide"><u id="progXp"></u></span><small id="progNext"></small></div>
+        </div>
+        <div class="stats" id="progStats"></div>
+        <div class="save-box" id="saveBox"></div>
+        <button class="btn small alt" id="btnProgStyle" type="button">&#x1F3A8; Change look</button>
+      </section>
+
       <section id="lobby" class="screen overlay" hidden>
         <div class="card">
           <h2 id="lobbyTitle">Finding players</h2>
