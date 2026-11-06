@@ -1,5 +1,6 @@
 // Party: a small lobby where friends gather, pick a mode, ready up, and launch a private match together.
 import { loadUser, card } from './db.js';
+import { DIFF_KEYS } from '../shared/difficulty.js';
 
 const MAX_MEMBERS = 4;
 const MAX_MSGS_PER_SEC = 20;
@@ -11,6 +12,7 @@ export class Party {
     this.members = new Map(); // ws -> { uid, card, ready }
     this.leader = 0;
     this.mode = 'ffa';
+    this.diff = 'easy';
     this.code = '';
     this.busyUntil = 0;
   }
@@ -69,6 +71,7 @@ export class Party {
       code: this.code,
       leader: this.leader,
       mode: this.mode,
+      diff: this.diff,
       members: [...this.members.values()].map((m) => ({ ...m.card, ready: m.ready || m.uid === this.leader })),
     };
   }
@@ -111,6 +114,9 @@ export class Party {
       this.mode = m.v;
       for (const x of this.members.values()) x.ready = false;
       this.broadcastState();
+    } else if (m.t === 'diff' && isLeader && DIFF_KEYS.includes(m.v)) {
+      this.diff = m.v;
+      this.broadcastState();
     } else if (m.t === 'start' && isLeader) {
       await this.start(ws);
     } else if (m.t === 'ping') this.send(ws, { t: 'pong' });
@@ -136,7 +142,7 @@ export class Party {
     const room = `p-${this.code}-${Date.now().toString(36)}`;
     const humans = list.map((x, i) => ({ uid: x.uid, team: this.mode === 'team' ? (i % 2) + 1 : 0 }));
     const stub = this.env.MATCH.get(this.env.MATCH.idFromName(room));
-    const res = await stub.fetch('https://room/prepare', { method: 'POST', body: JSON.stringify({ mode: this.mode, humans, private: true }) });
+    const res = await stub.fetch('https://room/prepare', { method: 'POST', body: JSON.stringify({ mode: this.mode, diff: this.diff, humans, private: true }) });
     if (!res.ok) return this.send(leaderWs, { t: 'notice', text: 'Could not start. Try again!' });
     for (const x of list) x.ready = false;
     this.broadcast({ t: 'go', room, mode: this.mode });

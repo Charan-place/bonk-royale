@@ -2,7 +2,8 @@
 // Quick-play rooms are public (first-fit); party/duel rooms are private and prepared by the Party object.
 import { C, MODES, createMatch, stepMatch, flick, emote, drainEvents, results } from '../shared/sim.js';
 import { applyMatch } from '../shared/progress.js';
-import { nameOf, randomName, levelOf } from '../shared/cosmetics.js';
+import { DIFFS, diffOf } from '../shared/difficulty.js';
+import { nameOf, randomName } from '../shared/cosmetics.js';
 import { loadUser, saveUser, card, ownProfile, recordMet } from './db.js';
 
 const LOBBY_QUICK_MS = 8000;
@@ -49,7 +50,7 @@ export class MatchRoom {
     if (url.pathname === '/prepare' && request.method === 'POST') {
       const body = await request.json();
       if (this.phase !== 'idle' || !MODES[body.mode] || !Array.isArray(body.humans)) return new Response('Busy', { status: 409 });
-      this.cfg = { mode: body.mode, private: true, expected: new Map(body.humans.map((h) => [Number(h.uid), Number(h.team) || 0])) };
+      this.cfg = { mode: body.mode, diff: diffOf(body.diff), private: true, expected: new Map(body.humans.map((h) => [Number(h.uid), Number(h.team) || 0])) };
       this.phase = 'lobby';
       this.lobbyEnd = Date.now() + LOBBY_PRIVATE_MS;
       this.startLobbyTimer();
@@ -58,10 +59,11 @@ export class MatchRoom {
     if (url.pathname === '/connect') {
       const uid = Number(request.headers.get('X-Uid'));
       const mode = request.headers.get('X-Mode') || 'ffa';
+      const diff = diffOf(request.headers.get('X-Diff'));
       if (!Number.isInteger(uid) || uid <= 0 || !MODES[mode]) return new Response('Bad request', { status: 400 });
       if (this.cfg && this.cfg.private && !this.cfg.expected.has(uid)) return new Response('Not invited', { status: 403 });
       if (!this.cfg) {
-        this.cfg = { mode, private: false };
+        this.cfg = { mode, diff, private: false };
         this.phase = 'lobby';
         this.lobbyEnd = Date.now() + LOBBY_QUICK_MS;
         this.startLobbyTimer();
@@ -210,12 +212,15 @@ export class MatchRoom {
       list.push({ id, pid: c.uid, name, kind: c.card.kind, col: c.card.col, hat: c.card.hat, trail: c.card.trail, team, bot: false });
     });
 
+    // bots never wear a human's colour, so every player is easy to tell apart
+    const humanCols = new Set(list.map((p) => p.col));
+    const botColours = Array.from({ length: 12 }, (_, i) => i).filter((i) => !humanCols.has(i));
     const botCard = (id, team) => {
       let name;
       do name = nameOf(...randomName());
       while (used.has(name));
       used.add(name);
-      return { id, name, kind: Math.floor(Math.random() * 8), col: Math.floor(Math.random() * 12), hat: Math.floor(Math.random() * 8), trail: Math.floor(Math.random() * 5), team, bot: true };
+      return { id, name, kind: Math.floor(Math.random() * 8), col: botColours[Math.floor(Math.random() * botColours.length)], hat: Math.floor(Math.random() * 8), trail: Math.floor(Math.random() * 5), team, bot: true };
     };
     if (mode === 'ffa') while (list.length < 8) list.push(botCard(nextId, nextId++));
     else if (mode === 'duel') while (list.length < 2) list.push(botCard(nextId, nextId++));
@@ -226,8 +231,7 @@ export class MatchRoom {
     }
     void cfg;
 
-    const avgLevel = humans.reduce((s, c) => s + levelOf(c.user.xp), 0) / Math.max(1, humans.length);
-    const difficulty = Math.min(0.72, 0.28 + avgLevel * 0.025);
+    const difficulty = DIFFS[this.cfg.diff].skill;
     this.m = createMatch({ mode, players: list, difficulty });
     this.phase = 'match';
     this.finishing = false;
@@ -293,7 +297,7 @@ export class MatchRoom {
       try {
         const user = await loadUser(this.env, c.uid);
         const before = structuredClone(user);
-        const reward = applyMatch(user, { place: mine.place, players: m.pucks.length, kos: mine.kos, gems: mine.gems, won: mine.won });
+        const reward = applyMatch(user, { place: mine.place, players: m.pucks.length, kos: mine.kos, gems: mine.gems, won: mine.won, mult: DIFFS[this.cfg.diff].mult });
         await saveUser(this.env, before, user);
         c.user = user;
         const met = humans.filter(([, o]) => o.uid !== c.uid).map(([, o]) => o.card);
