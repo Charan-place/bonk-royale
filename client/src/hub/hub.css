@@ -1,5 +1,5 @@
 /* Bonk Games hub: a night arcade. Each game is a lit-up cabinet tile with its own colour and art. */
-.hubpage { overflow-y: auto; touch-action: pan-y; background: radial-gradient(90% 60% at 50% -10%, #14507f 0%, transparent 70%), radial-gradient(70% 50% at 100% 100%, #6b3410 0%, transparent 70%), var(--night); padding: max(16px, env(safe-area-inset-top)) 16px 36px; user-select: auto; -webkit-user-select: auto; color: var(--text); }
+#stage.hubpage { overflow-y: auto; touch-action: pan-y; background: radial-gradient(90% 60% at 50% -10%, #14507f 0%, transparent 70%), radial-gradient(70% 50% at 100% 100%, #6b3410 0%, transparent 70%), var(--night); padding: max(16px, env(safe-area-inset-top)) 16px 36px; user-select: auto; -webkit-user-select: auto; color: var(--text); }
 .hubpage > * { max-width: 1000px; margin-left: auto; margin-right: auto; }
 .hubhead { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px 24px; }
 .wordmark { margin: 0; font: 400 clamp(46px, 9vw, 84px)/0.86 var(--display); letter-spacing: 0.01em; color: var(--text); text-shadow: 0 4px 0 #0a5fc4, 0 8px 0 rgba(0, 0, 0, 0.35); }

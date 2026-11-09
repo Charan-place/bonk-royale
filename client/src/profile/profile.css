@@ -1,4 +1,4 @@
-.profpage { overflow-y: auto; touch-action: pan-y; padding: max(12px, env(safe-area-inset-top)) 14px 40px; background: var(--night); user-select: auto; -webkit-user-select: auto; color: var(--text); }
+#stage.profpage { overflow-y: auto; touch-action: pan-y; padding: max(12px, env(safe-area-inset-top)) 14px 40px; background: var(--night); user-select: auto; -webkit-user-select: auto; color: var(--text); }
 .profpage > * { max-width: 1000px; margin-left: auto; margin-right: auto; }
 .profbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .profbar h1 { margin: 0; font: 400 30px/1 var(--display); }
