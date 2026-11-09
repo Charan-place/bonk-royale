@@ -3,7 +3,7 @@ import '@fontsource/baloo-2/800.css';
 import './ui.css';
 import { C, MODES, pointToHex } from '../../shared/sim.js';
 import { DIFFS, diffOf } from '../../shared/difficulty.js';
-import { mountAccountBox } from './account.js';
+import { mountAccountBox, googleClientId } from './account.js';
 import { KINDS, COLORS, HATS, TRAILS, EMOTES, RARITY, nameOf, randomName, displayName, levelProgress } from '../../shared/cosmetics.js';
 import { checkName, NAME_MAX } from '../../shared/names.js';
 import { Stage } from './scene.js';
@@ -1235,6 +1235,64 @@ function openProgress() {
   $('friendsSheet').hidden = true;
 }
 renderAccount = mountAccountBox($('saveBox'), { store, toast, sfx });
+
+// First-visit choice: sign in with Google or play as a guest. Guests keep a small "Sign in" chip.
+const WELCOME_KEY = 'bonk_welcome';
+let welcomeBoxMounted = false;
+function closeWelcome(remember = true) {
+  $('welcome').hidden = true;
+  if (!remember) return;
+  try {
+    localStorage.setItem(WELCOME_KEY, '1');
+  } catch {
+    /* shown again next visit */
+  }
+}
+function openWelcome() {
+  $('welcomeChoice').hidden = false;
+  $('welcomeBox').hidden = true;
+  $('btnWelcomeSkip').hidden = true;
+  $('welcome').hidden = false;
+}
+async function syncSignIn() {
+  const show = api.remote && !store.data.linked && !!(await googleClientId());
+  $('btnSignIn').hidden = !show;
+  if (store.data.linked) closeWelcome(false);
+  return show;
+}
+async function maybeWelcome() {
+  let seen = false;
+  try {
+    seen = localStorage.getItem(WELCOME_KEY) === '1';
+  } catch {
+    seen = true;
+  }
+  if (seen || params.get('join') || !(await syncSignIn())) return;
+  openWelcome();
+}
+$('btnSignIn').addEventListener('click', () => {
+  sfx.click();
+  openWelcome();
+});
+$('btnWelcomeGuest').addEventListener('click', () => {
+  sfx.click();
+  closeWelcome();
+});
+$('btnWelcomeSkip').addEventListener('click', () => {
+  sfx.click();
+  closeWelcome();
+});
+$('btnWelcomeSign').addEventListener('click', () => {
+  sfx.click();
+  if (!welcomeBoxMounted) {
+    mountAccountBox($('welcomeBox'), { store, toast, sfx });
+    welcomeBoxMounted = true;
+  }
+  $('welcomeChoice').hidden = true;
+  $('welcomeBox').hidden = false;
+  $('btnWelcomeSkip').hidden = false;
+});
+store.onChange(syncSignIn);
 $('meCard').addEventListener('click', openProgress);
 $('btnProgStyle').addEventListener('click', () => {
   $('progressSheet').hidden = true;
@@ -1443,6 +1501,7 @@ async function boot() {
     el.status.textContent = 'Offline practice mode: play against bots. Progress stays on this device.';
   }
   renderHome();
+  maybeWelcome();
 }
 boot();
 window.__bonk = { stage, store, api, get session() { return session; }, get dbg() { return { aim, myInfo, screen, partyState }; } };

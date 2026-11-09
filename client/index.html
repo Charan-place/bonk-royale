@@ -77,6 +77,7 @@
             <span class="me-text"><b id="meName">Player</b><span class="lvl"><i id="meLvl">Lv 1</i><span class="xp"><u id="meXp"></u></span></span></span>
           </button>
           <div class="wallet">
+            <button class="chip signin-chip" id="btnSignIn" type="button" hidden>Sign in</button>
             <span class="chip" title="Coins">&#x1FA99; <b id="coins">0</b></span>
             <a class="hud-btn" id="btnProfile" href="/profile/" aria-label="My profile" title="My profile" style="text-decoration:none">&#x1F464;</a>
             <a class="hud-btn" id="btnGames" href="/games/" aria-label="More Bonk games" title="More Bonk games" style="text-decoration:none">&#x1F3AE;</a>
@@ -150,6 +151,19 @@
           <button class="btn small" type="submit">Save</button>
         </form>
         <p class="namerule" id="nameRule">3 to 14 letters, numbers or spaces. Keep it friendly!</p>
+      </section>
+
+      <section id="welcome" class="screen overlay" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+        <div class="card welcome">
+          <h2 id="welcomeTitle">Welcome to Bonk!</h2>
+          <p class="sub">Sign in to keep your level, coins and looks safe on any device. Or jump straight in as a guest.</p>
+          <div id="welcomeChoice" class="welcome-choice">
+            <button class="btn play" id="btnWelcomeSign" type="button">Sign in with Google</button>
+            <button class="btn alt" id="btnWelcomeGuest" type="button">Play as guest</button>
+          </div>
+          <div id="welcomeBox" hidden></div>
+          <button class="btn small alt" id="btnWelcomeSkip" type="button" hidden>Play as guest instead</button>
+        </div>
       </section>
 
       <section id="howto" class="screen overlay" hidden role="dialog" aria-modal="true" aria-labelledby="howtoTitle">

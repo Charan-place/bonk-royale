@@ -317,3 +317,10 @@ html:has(.doc), body:has(.doc) { overflow: auto; }
 .nextup b { font-size: 18px; }
 .nextup small { font-weight: 700; color: var(--ink-soft); font-size: 13px; }
 @media (max-height: 760px) { .shelf-tile span { display: none; } .shelf-head { font-size: 14px; } }
+
+/* ---- Welcome (sign in or guest) ---- */
+.welcome { max-width: 380px; display: grid; gap: 12px; text-align: center; }
+.welcome h2 { margin: 0; }
+.welcome .sub { margin: 0; font-weight: 700; color: var(--ink-soft); }
+.welcome-choice { display: grid; gap: 10px; }
+.signin-chip { font-weight: 800; cursor: pointer; }
