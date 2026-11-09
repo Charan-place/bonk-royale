@@ -14,6 +14,7 @@ import { CATALOG, byId } from './catalog.js';
 import { sfx, audioPrefs } from '../audio.js';
 import './pwa.js';
 import { initAds } from '../ads.js';
+import { shareResult } from './share.js';
 
 const h = (tag, cls, text) => {
   const n = document.createElement(tag);
@@ -188,6 +189,17 @@ export async function createShell({ game, help }) {
       onAgain && onAgain();
     }));
     for (const [label, fn] of extraButtons) acts.append(button(label, 'alt small', fn));
+    if (againLabel !== 'Share result') {
+      acts.append(
+        button('Share', 'alt small', async () => {
+          const d = store.data;
+          const how = await shareResult({ game, title, big, lines, starCount, look: { kind: d.kind, col: d.col, hat: d.hat } });
+          if (how === 'downloaded') toast('Picture saved. Post it with the link!');
+          else if (how === 'copied') toast('Link copied!');
+          else if (how === 'failed') toast('Could not share. Try again.');
+        })
+      );
+    }
     const others = CATALOG.filter((g) => g.id !== game && g.id !== 'royale');
     const next = others[Math.floor(Math.random() * others.length)];
     const nextA = h('a', 'nextgame');
