@@ -1,7 +1,7 @@
 @font-face { font-family: "Baloo 2"; font-weight: 800; src: local("Baloo 2 ExtraBold"), local("Baloo2-ExtraBold"); }
-:root { --ink: #2b2150; --sun: #ffd23f; }
+:root { --ink: #13202f; --sun: #ffd23f; }
 * { box-sizing: border-box; }
-html, body { margin: 0; background: linear-gradient(#6b5bff, #ff8fc8); min-height: 100%; font-family: "Baloo 2", "Trebuchet MS", system-ui, sans-serif; color: #fff; }
+html, body { margin: 0; background: linear-gradient(#0f2236, #ff8fc8); min-height: 100%; font-family: "Baloo 2", "Trebuchet MS", system-ui, sans-serif; color: #fff; }
 .doc { max-width: 720px; margin: 0 auto; padding: 28px 20px 64px; line-height: 1.6; }
 .doc h1 { font-size: 52px; color: var(--sun); -webkit-text-stroke: 6px var(--ink); paint-order: stroke fill; margin: 8px 0 14px; line-height: 1; }
 .doc h2 { font-size: 26px; margin: 26px 0 4px; text-shadow: 0 2px 0 var(--ink); }

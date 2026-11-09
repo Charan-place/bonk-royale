@@ -30,6 +30,43 @@ ok((await call(ta, '/api/equip', { type: 'col', idx: 3 })).status === 200, 'equi
 ok((await call(ta, '/api/capsule/open', {})).status === 400, 'no capsule yet');
 const gift = await call(ta, '/api/gift/claim', {}); ok(gift.status === 200 && gift.data.gift.coins >= 55, 'daily gift +' + gift.data.gift?.coins);
 ok((await call(ta, '/api/gift/claim', {})).status === 400, 'gift only once a day');
+// 2b) prefs, Google sign-in guard, export, delete
+ok((await call(ta, '/api/prefs', { diff: 'hard', sound: false, evil: 'x' })).status === 200, 'prefs saved');
+{
+  const me = await call(ta, '/api/me'); ok(me.data.profile.prefs.diff === 'hard' && me.data.profile.prefs.sound === false && !('evil' in me.data.profile.prefs), 'prefs round-trip, unknown keys dropped');
+  ok(me.data.profile.linked === false, 'new account is not linked');
+}
+ok((await call(ta, '/api/auth/google', { credential: 'a.b.c' })).status === 401, 'bad Google token rejected');
+ok((await call(null, '/api/auth/google', { credential: 'a.b.c' })).status === 401, 'Google sign-in needs a device account');
+{
+  const t = (await call(null, '/api/register', {})).data.token;
+  const ex = await call(t, '/api/account/export'); ok(ex.status === 200 && ex.data.profile.code, 'export my data');
+  ok((await call(t, '/api/account/delete', {})).status === 400, 'delete needs confirmation');
+  ok((await call(t, '/api/account/delete', { confirm: 'DELETE' })).status === 200, 'account deleted');
+  ok((await call(t, '/api/me')).status === 401, 'deleted account token is dead');
+}
+// 2c) solo games: finish, saves, leaderboard, quest
+{
+  const t = (await call(null, '/api/register', {})).data.token;
+  ok((await call(t, '/api/game/finish', { game: 'nope', score: 1, ms: 9000 })).status === 400, 'unknown game rejected');
+  ok((await call(t, '/api/game/finish', { game: 'merge', score: 1e9, ms: 99999 })).status === 400, 'impossible score rejected');
+  ok((await call(t, '/api/game/finish', { game: 'merge', score: 900, ms: 100 })).status === 400, 'too-quick run rejected');
+  const f = await call(t, '/api/game/finish', { game: 'merge', score: 2400, ms: 30000 });
+  ok(f.status === 200 && f.data.reward.xp > 0 && f.data.newBest === true, 'merge finish rewards +' + f.data.reward?.xp + ' xp');
+  const f2 = await call(t, '/api/game/finish', { game: 'merge', score: 100, ms: 30000 });
+  ok(f2.data.best === 2400 && f2.data.newBest === false, 'best score keeps the higher run');
+  ok((await call(t, '/api/game/save', { game: 'golf', data: '3210' })).status === 200, 'save progress');
+  ok((await call(t, '/api/game/save?game=golf')).data.data === '3210', 'load progress back');
+  ok((await call(t, '/api/game/save', { game: 'golf', data: 'x'.repeat(5000) })).status === 413, 'oversized save rejected');
+  const lb = await call(t, '/api/leaderboard?game=merge&period=today');
+  ok(lb.data.top.some((r) => r.me && r.score === 2400) && lb.data.mine.rank >= 1, 'leaderboard shows me');
+  ok(!lb.data.top.some((r) => 'code' in r && r.code), 'leaderboard hides friend codes');
+  let q = await call(t, '/api/quest'); ok(q.data.played === 1 && !q.data.claimed, 'quest 1/2');
+  ok((await call(t, '/api/quest', {})).status === 400, 'quest cannot be claimed early');
+  await call(t, '/api/game/finish', { game: 'rush', score: 500, ms: 20000 });
+  const cl = await call(t, '/api/quest', {}); ok(cl.status === 200 && cl.data.coins === 50, 'quest claimed');
+  ok((await call(t, '/api/quest', {})).status === 400, 'quest only once a day');
+}
 // 3) friends
 ok((await call(ta, '/api/friends/add', { code: 'BONK-ZZZZZ' })).status === 404, 'unknown code 404');
 ok((await call(ta, '/api/friends/add', { code: pa.code })).status === 400, 'cannot add yourself');
