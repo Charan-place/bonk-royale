@@ -518,7 +518,7 @@ function drawWorld(c) {
       c.save();
       roundRect(c, r.x, r.y, r.w, r.h, 7);
       c.clip();
-      c.fillStyle = '#1d1a3a';
+      c.fillStyle = '#13202f';
       for (let k = -r.h; k < r.w + r.h; k += 20) {
         c.beginPath();
         c.moveTo(r.x + k, r.y + r.h);

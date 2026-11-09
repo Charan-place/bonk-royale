@@ -6,7 +6,7 @@ export function drawBomb(c, x, y, r, t = 0, hot = false) {
   c.translate(x, y);
   const g = c.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.1, 0, 0, r);
   g.addColorStop(0, hot ? '#ff8a6a' : '#5a5780');
-  g.addColorStop(1, hot ? '#b3200f' : '#1d1a3a');
+  g.addColorStop(1, hot ? '#b3200f' : '#13202f');
   c.fillStyle = g;
   c.strokeStyle = INK;
   c.lineWidth = r * 0.12;

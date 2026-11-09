@@ -1076,14 +1076,14 @@ function buildDemo() {
   // me
   const me = add(scene, 'g', { class: 'me' });
   add(me, 'ellipse', { cx: 110, cy: 107, rx: 24, ry: 11, fill: 'none', stroke: '#fff', 'stroke-width': 7 });
-  add(me, 'ellipse', { cx: 110, cy: 107, rx: 24, ry: 11, fill: 'none', stroke: '#6a2cff', 'stroke-width': 4.5 });
-  add(me, 'circle', { cx: 110, cy: 100, r: 15, fill: '#ff6fa0', stroke: '#6a2cff', 'stroke-width': 3.5 });
+  add(me, 'ellipse', { cx: 110, cy: 107, rx: 24, ry: 11, fill: 'none', stroke: '#0a7cff', 'stroke-width': 4.5 });
+  add(me, 'circle', { cx: 110, cy: 100, r: 15, fill: '#ff6fa0', stroke: '#0a7cff', 'stroke-width': 3.5 });
   for (const dx of [-5, 5]) {
     add(me, 'circle', { cx: 110 + dx, cy: 97, r: 3, fill: '#fff' });
     add(me, 'circle', { cx: 110 + dx, cy: 97.5, r: 1.5, fill: '#2b2150' });
   }
   const tag = add(me, 'g', {});
-  add(tag, 'rect', { x: 94, y: 66, width: 32, height: 15, rx: 7.5, fill: '#6a2cff', stroke: '#fff', 'stroke-width': 2 });
+  add(tag, 'rect', { x: 94, y: 66, width: 32, height: 15, rx: 7.5, fill: '#0a7cff', stroke: '#fff', 'stroke-width': 2 });
   const yt = add(tag, 'text', { x: 110, y: 77.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 10, 'font-weight': 800 });
   yt.textContent = 'YOU';
   // pointers

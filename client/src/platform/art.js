@@ -9,22 +9,22 @@ const H = 150;
 const COVERS = {
   royale(c) {
     const g = c.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#2a1f73');
-    g.addColorStop(1, '#5a2f9e');
+    g.addColorStop(0, '#12406b');
+    g.addColorStop(1, '#1b6aa5');
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
-    c.fillStyle = '#ff9ac1';
+    c.fillStyle = '#ffb627';
     c.beginPath();
     c.ellipse(150, 118, 140, 58, 0, 0, 7);
     c.fill();
-    c.fillStyle = '#ffd1e3';
+    c.fillStyle = '#ffe3a1';
     c.beginPath();
     c.ellipse(150, 110, 118, 46, 0, 0, 7);
     c.fill();
     c.strokeStyle = INK;
     c.lineWidth = 4;
     c.stroke();
-    drawCreature(c, L(0, 4, 6), 108, 78, 30);
+    drawCreature(c, L(0, 7, 6), 108, 78, 30);
     drawCreature(c, L(4, 2), 196, 84, 28, { rot: 0.2 });
     c.strokeStyle = '#fff';
     c.lineWidth = 5;
@@ -53,7 +53,7 @@ const COVERS = {
     c.beginPath();
     c.ellipse(232, 74, 15, 13, 0, 0, 7);
     c.fill();
-    c.strokeStyle = '#f4f1ff';
+    c.strokeStyle = '#f7f3e8';
     c.lineWidth = 3;
     c.beginPath();
     c.moveTo(234, 74);
@@ -96,8 +96,8 @@ const COVERS = {
   },
   potato(c) {
     const g = c.createRadialGradient(150, 80, 10, 150, 80, 170);
-    g.addColorStop(0, '#3a2142');
-    g.addColorStop(1, '#1a1030');
+    g.addColorStop(0, '#3b2216');
+    g.addColorStop(1, '#170e0a');
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
     c.fillStyle = '#d8693a';
@@ -114,12 +114,12 @@ const COVERS = {
   },
   rush(c) {
     const g = c.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#1b2a6b');
-    g.addColorStop(0.6, '#6a63c9');
-    g.addColorStop(1, '#f3b3a0');
+    g.addColorStop(0, '#0f3a5f');
+    g.addColorStop(0.6, '#2f7fa8');
+    g.addColorStop(1, '#ffc89a');
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
-    c.fillStyle = '#3d3f9a';
+    c.fillStyle = '#1f5d82';
     c.beginPath();
     c.moveTo(0, H);
     c.lineTo(0, 90);
@@ -133,7 +133,7 @@ const COVERS = {
     for (const [x, w] of [[-10, 120], [150, 150]]) {
       const pg = c.createLinearGradient(0, 112, 0, H);
       pg.addColorStop(0, '#dff4ff');
-      pg.addColorStop(1, '#3d4fa8');
+      pg.addColorStop(1, '#2a5f96');
       c.fillStyle = pg;
       c.strokeStyle = INK;
       c.lineWidth = 3.5;
@@ -147,13 +147,13 @@ const COVERS = {
   },
   daily(c) {
     const g = c.createRadialGradient(150, 20, 10, 150, 80, 200);
-    g.addColorStop(0, '#2a2760');
-    g.addColorStop(1, '#12112b');
+    g.addColorStop(0, '#1d3a5e');
+    g.addColorStop(1, '#0e1a2b');
     c.fillStyle = g;
     c.fillRect(0, 0, W, H);
     const rows = [[L(0, 3), L(1, 0), L(2, 9), L(3, 2)], [L(4, 6), L(1, 0), L(5, 1), L(3, 2)]];
     rows.forEach((row, r) => {
-      c.fillStyle = '#1c1a42';
+      c.fillStyle = '#152a44';
       c.beginPath();
       c.roundRect(46, 22 + r * 52, 208, 44, 12);
       c.fill();

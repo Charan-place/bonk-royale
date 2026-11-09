@@ -1,14 +1,14 @@
 /* Bonk Games chrome (hub + solo games). Dark, quiet UI so each game's own scene is the colourful part.
    Scoped to body.bp so Bonk Royale's own look is untouched. */
 body.bp {
-  --night: #12112b;
-  --panel: #1c1a42;
-  --panel-2: #2a2760;
+  --night: #0e1a2b;
+  --panel: #152a44;
+  --panel-2: #1d3a5e;
   --line: rgba(255, 255, 255, 0.12);
-  --text: #f4f1ff;
-  --muted: #a9a4d6;
-  --accent: #9b7bff;
-  --accent-ink: #14122e;
+  --text: #f7f3e8;
+  --muted: #9db2c9;
+  --accent: #ffb627;
+  --accent-ink: #13202f;
   --display: "Lilita One", "Baloo 2", system-ui, sans-serif;
   --font: "Nunito", system-ui, sans-serif;
   background: var(--night);
@@ -19,11 +19,11 @@ body.bp {
 body.bp[data-game="golf"] { --accent: #86e05a; }
 body.bp[data-game="merge"] { --accent: #ff7a59; }
 body.bp[data-game="potato"] { --accent: #ffb020; }
-body.bp[data-game="rush"] { --accent: #55d0ff; }
-body.bp[data-game="daily"] { --accent: #f2c14e; }
+body.bp[data-game="rush"] { --accent: #4cc3ff; }
+body.bp[data-game="daily"] { --accent: #3ddbb0; }
 body.bp #shell { background: var(--night); }
-body.bp .rail, body.bp .ad { background: #0d0c20; }
-body.bp .banner { background: #0d0c20; }
+body.bp .rail, body.bp .ad { background: #09131f; }
+body.bp .banner { background: #09131f; }
 
 /* top bar */
 .gstage { display: flex; flex-direction: column; background: var(--night); }
@@ -113,7 +113,7 @@ body.bp .mode.on { background: var(--accent); color: var(--accent-ink); border-c
 .lv.locked svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
 
 /* ---- Daily Bonk ---- */
-.dly { position: absolute; inset: 0; overflow-y: auto; display: grid; grid-template-rows: auto 1fr auto auto auto; gap: 10px; justify-items: center; padding: 10px 12px 18px; background: radial-gradient(120% 80% at 50% 0%, #2a2760, #12112b 70%); }
+.dly { position: absolute; inset: 0; overflow-y: auto; display: grid; grid-template-rows: auto 1fr auto auto auto; gap: 10px; justify-items: center; padding: 10px 12px 18px; background: radial-gradient(120% 80% at 50% 0%, #1d3a5e, #0e1a2b 70%); }
 .dly-title { margin: 0; font: 400 20px var(--display); color: var(--accent); letter-spacing: 0.04em; }
 .dly-board { display: grid; gap: 5px; align-content: center; width: min(360px, 100%); }
 .dly-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 4px 10px; }

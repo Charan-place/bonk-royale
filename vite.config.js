@@ -15,6 +15,7 @@ export default defineConfig({
       input: {
         main: page('index.html'),
         hub: page('games/index.html'),
+        profile: page('profile/index.html'),
         golf: page('play/golf/index.html'),
         merge: page('play/merge/index.html'),
         potato: page('play/potato/index.html'),

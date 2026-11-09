@@ -10,7 +10,7 @@ export const TIERS = [
   { r: 43, look: { kind: 7, col: 10, hat: 0 }, name: 'Penguin' },
   { r: 52, look: { kind: 4, col: 6, hat: 0 }, name: 'Dino' },
   { r: 62, look: { kind: 5, col: 1, hat: 2 }, name: 'Robo' },
-  { r: 73, look: { kind: 6, col: 4, hat: 5 }, name: 'Alien' },
+  { r: 73, look: { kind: 6, col: 8, hat: 5 }, name: 'Alien' },
   { r: 85, look: { kind: 0, col: 7, hat: 3 }, name: 'Gentleman Kitty' },
   { r: 98, look: { kind: 2, col: 9, hat: 4 }, name: 'Cowboy Bear' },
   { r: 112, look: { kind: 3, col: 11, hat: 6 }, name: 'Legendary Bonk' },

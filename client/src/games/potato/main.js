@@ -384,8 +384,8 @@ gc.update = (dt) => {
 
 gc.draw = (c) => {
   const bg = c.createRadialGradient(gc.w / 2, gc.h / 2, 40, gc.w / 2, gc.h / 2, Math.max(gc.w, gc.h) * 0.7);
-  bg.addColorStop(0, '#3a2142');
-  bg.addColorStop(1, '#1a1030');
+  bg.addColorStop(0, '#3b2216');
+  bg.addColorStop(1, '#170e0a');
   c.fillStyle = bg;
   c.fillRect(0, 0, gc.w, gc.h);
   const danger = phase === 'play' && fuse < 3;

@@ -216,9 +216,9 @@ gc.update = (dt) => {
 gc.draw = (c) => {
   // dusk over the ice fields
   const g = c.createLinearGradient(0, 0, 0, gc.h);
-  g.addColorStop(0, '#1b2a6b');
-  g.addColorStop(0.55, '#6a63c9');
-  g.addColorStop(1, '#f3b3a0');
+  g.addColorStop(0, '#0f3a5f');
+  g.addColorStop(0.55, '#2f7fa8');
+  g.addColorStop(1, '#ffc89a');
   c.fillStyle = g;
   c.fillRect(0, 0, gc.w, gc.h);
   const camX = st.dist - sx() / s;
@@ -241,8 +241,8 @@ gc.draw = (c) => {
     c.closePath();
     c.fill();
   };
-  ridge(0.15, 300, 130, '#3d3f9a');
-  ridge(0.3, 330, 90, '#2b2d78');
+  ridge(0.15, 300, 130, '#1f5d82');
+  ridge(0.3, 330, 90, '#154560');
   // stars
   c.fillStyle = 'rgba(255,255,255,.7)';
   for (const cl of clouds) c.fillRect(((cl.x * 3.1 - camX * 0.05) % gc.w + gc.w) % gc.w, cl.y * s * 0.6, 2, 2);
@@ -255,7 +255,7 @@ gc.draw = (c) => {
     const pg = c.createLinearGradient(0, p.y, 0, p.y + 120);
     pg.addColorStop(0, '#dff4ff');
     pg.addColorStop(0.2, '#9fd2f0');
-    pg.addColorStop(1, '#3d4fa8');
+    pg.addColorStop(1, '#2a5f96');
     c.fillStyle = pg;
     roundRect(c, p.x, p.y, p.w, WH - p.y + 200, 12);
     c.fill();
@@ -304,7 +304,7 @@ gc.draw = (c) => {
   const sc = Math.floor(st.dist / 25) + st.gems * 10;
   c.font = '400 34px "Lilita One", system-ui';
   c.fillStyle = '#fff';
-  c.strokeStyle = 'rgba(20,18,50,.7)';
+  c.strokeStyle = 'rgba(10,24,40,.7)';
   c.lineWidth = 6;
   c.strokeText(sc.toLocaleString(), 16, 46);
   c.fillText(sc.toLocaleString(), 16, 46);

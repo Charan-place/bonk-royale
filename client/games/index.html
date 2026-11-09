@@ -7,7 +7,7 @@
   <meta name="description" content="Bonk Games: free browser games for kids and adults. Play Bonk Royale, Bonk Golf, Bonk Merge, Hot Potato Bonk, Bonk Rush and a Daily puzzle. No download, works on phones, tablets and computers. One account, one level.">
   <meta name="keywords" content="free online games, games for kids, browser games, no download games, party games, puzzle games, io games">
   <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta name="theme-color" content="#8c5cff">
+  <meta name="theme-color" content="#0e1a2b">
   <link rel="canonical" href="https://playbonkroyale.com/games/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="/manifest.webmanifest">
@@ -30,12 +30,13 @@
       <header class="hubhead">
         <div><h1 class="wordmark">BONK<span>GAMES</span></h1>
         <p class="hubsub">Six free games for kids and grown-ups. One account, one level, everywhere.</p></div>
-        <div class="hubme" id="hubMe" hidden>
+        <a class="hubme" id="hubMe" href="/profile/" hidden aria-label="Edit my profile">
           <img class="av" id="hmAv" alt="">
           <span class="hm-who"><b id="hmName"></b><small id="hmLvl"></small></span>
           <span class="chip" id="hmCoins"></span>
           <span class="chip" id="hmStreak"></span>
-        </div>
+          <span class="edit">Edit profile</span>
+        </a>
       </header>
       <section class="quest" id="quest" hidden aria-live="polite">
         <span class="q-body"><b>Daily quest</b><small id="qText">Play 2 different games today</small><u class="q-bar"><i id="qBar"></i></u></span>
@@ -43,7 +44,7 @@
       </section>
       <a class="gcard cont" id="cont" href="/" hidden><canvas class="art" id="contArt" width="128" height="128" aria-hidden="true"></canvas><span class="gc-body"><b>Continue</b><small id="contName"></small></span><span class="go">Play</span></a>
       <nav class="grid" aria-label="Games">
-      <a class="gcard" href="/" data-game="royale" style="--c:#9b7bff">
+      <a class="gcard" href="/" data-game="royale" style="--c:#ff6b4a">
         <canvas class="art" data-art="royale" width="600" height="300" aria-hidden="true"></canvas>
         <span class="gc-body"><b>Bonk Royale</b><small>Multiplayer</small><span>Flick rivals off a crumbling candy island. Last one standing wins!</span></span>
         <i class="gc-badge" hidden></i>
@@ -63,12 +64,12 @@
         <span class="gc-body"><b>Hot Potato Bonk</b><small>Party vs bots</small><span>Pass the bomb by bumping rivals. Do not be holding it when it pops!</span></span>
         <i class="gc-badge" hidden></i>
       </a>
-      <a class="gcard" href="/play/rush/" data-game="rush" style="--c:#55d0ff">
+      <a class="gcard" href="/play/rush/" data-game="rush" style="--c:#4cc3ff">
         <canvas class="art" data-art="rush" width="600" height="300" aria-hidden="true"></canvas>
         <span class="gc-body"><b>Bonk Rush</b><small>Solo · One thumb</small><span>Dash across icy platforms, grab gems and never stop. How far can you go?</span></span>
         <i class="gc-badge" hidden></i>
       </a>
-      <a class="gcard" href="/play/daily/" data-game="daily" style="--c:#f2c14e">
+      <a class="gcard" href="/play/daily/" data-game="daily" style="--c:#3ddbb0">
         <canvas class="art" data-art="daily" width="600" height="300" aria-hidden="true"></canvas>
         <span class="gc-body"><b>Daily Bonk</b><small>New every day</small><span>One quick puzzle a day. Same for everyone. Keep your streak alive!</span></span>
         <i class="gc-badge" hidden></i>

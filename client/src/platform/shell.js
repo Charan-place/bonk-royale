@@ -48,7 +48,7 @@ export async function createShell({ game, help }) {
         <header class="gbar">
           <a class="hud-btn" href="/games/" aria-label="All games">${ICON.home}</a>
           <b class="gtitle"></b>
-          <span class="gchips"><span class="chip" id="gLvl"></span><span class="chip" id="gCoins"></span></span>
+          <a class="gchips" href="/profile/" aria-label="My profile" style="text-decoration:none"><span class="chip" id="gLvl"></span><span class="chip" id="gCoins"></span></a>
           <button class="hud-btn" id="gBoard" type="button" aria-label="Leaderboard">${ICON.trophy}</button>
           <button class="hud-btn" id="gHelp" type="button" aria-label="How to play">${ICON.help}</button>
           <button class="hud-btn" id="gSound" type="button" aria-label="Sound"></button>

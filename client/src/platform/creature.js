@@ -3,7 +3,7 @@
 import { COLORS } from '../../../shared/cosmetics.js';
 
 export const KIND_NAMES = ['Kitty', 'Bunny', 'Bear', 'Froggy', 'Dino', 'Robo', 'Alien', 'Penguin'];
-export const INK = '#1d1a3a';
+export const INK = '#13202f';
 
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const rgb = (a) => `rgb(${a.map((v) => Math.max(0, Math.min(255, Math.round(v)))).join(',')})`;
@@ -91,7 +91,7 @@ function hatShape(c, hat, r, t) {
     c.fill();
     c.stroke();
   } else if (hat === 5) {
-    c.fillStyle = '#6a3fd6';
+    c.fillStyle = '#2f5bd6';
     c.beginPath();
     c.moveTo(-r * 0.5, top + r * 0.1);
     c.lineTo(r * 0.06, top - r * 1.05);

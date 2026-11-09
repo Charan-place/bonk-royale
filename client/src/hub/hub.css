@@ -1,8 +1,8 @@
 /* Bonk Games hub: a night arcade. Each game is a lit-up cabinet tile with its own colour and art. */
-.hubpage { overflow-y: auto; touch-action: pan-y; background: radial-gradient(90% 60% at 50% -10%, #3a2f8f 0%, transparent 70%), radial-gradient(70% 50% at 100% 100%, #5a1f6e 0%, transparent 70%), var(--night); padding: max(16px, env(safe-area-inset-top)) 16px 36px; user-select: auto; -webkit-user-select: auto; color: var(--text); }
+.hubpage { overflow-y: auto; touch-action: pan-y; background: radial-gradient(90% 60% at 50% -10%, #14507f 0%, transparent 70%), radial-gradient(70% 50% at 100% 100%, #6b3410 0%, transparent 70%), var(--night); padding: max(16px, env(safe-area-inset-top)) 16px 36px; user-select: auto; -webkit-user-select: auto; color: var(--text); }
 .hubpage > * { max-width: 1000px; margin-left: auto; margin-right: auto; }
 .hubhead { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px 24px; }
-.wordmark { margin: 0; font: 400 clamp(46px, 9vw, 84px)/0.86 var(--display); letter-spacing: 0.01em; color: var(--text); text-shadow: 0 4px 0 #6a3dff, 0 8px 0 rgba(0, 0, 0, 0.35); }
+.wordmark { margin: 0; font: 400 clamp(46px, 9vw, 84px)/0.86 var(--display); letter-spacing: 0.01em; color: var(--text); text-shadow: 0 4px 0 #0a5fc4, 0 8px 0 rgba(0, 0, 0, 0.35); }
 .wordmark span { display: block; color: #ffd23f; text-shadow: 0 4px 0 #c46a00, 0 8px 0 rgba(0, 0, 0, 0.35); }
 .hubsub { margin: 10px 0 0; max-width: 34ch; font-size: clamp(15px, 2.4vw, 18px); color: var(--muted); font-weight: 700; line-height: 1.35; }
 .hubme { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 8px 12px; }
@@ -10,12 +10,12 @@
 .hm-who { display: grid; line-height: 1.1; }
 .hm-who b { font: 400 18px var(--display); }
 .hm-who small { font-weight: 800; color: var(--muted); }
-.quest { display: flex; align-items: center; gap: 14px; margin-top: 22px; background: linear-gradient(90deg, color-mix(in srgb, #f2c14e 20%, var(--panel)), var(--panel)); border: 1px solid var(--line); border-left: 5px solid #f2c14e; border-radius: 16px; padding: 12px 16px; }
+.quest { display: flex; align-items: center; gap: 14px; margin-top: 22px; background: linear-gradient(90deg, color-mix(in srgb, #3ddbb0 20%, var(--panel)), var(--panel)); border: 1px solid var(--line); border-left: 5px solid #3ddbb0; border-radius: 16px; padding: 12px 16px; }
 .q-body { flex: 1; display: grid; gap: 3px; min-width: 0; }
 .q-body b { font: 400 18px var(--display); }
 .q-body small { font-weight: 700; color: var(--muted); }
 .q-bar { display: block; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; overflow: hidden; margin-top: 4px; }
-.q-bar i { display: block; height: 100%; width: 0; background: #f2c14e; border-radius: 8px; transition: width 0.5s; }
+.q-bar i { display: block; height: 100%; width: 0; background: #3ddbb0; border-radius: 8px; transition: width 0.5s; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; margin-top: 22px; }
 .gcard { position: relative; display: grid; grid-template-rows: 150px auto; text-decoration: none; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; transition: transform 0.16s cubic-bezier(.2, 1.2, .4, 1), box-shadow 0.16s; }
 .gcard:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--c); }
@@ -35,3 +35,6 @@
 .about p { max-width: 64ch; }
 .about h2 { margin: 0 0 6px; font: 400 22px var(--display); color: var(--text); }
 .about a { color: var(--text); }
+.hubme { text-decoration: none; color: var(--text); transition: background 0.12s; }
+.hubme:hover { background: var(--panel-2); }
+.hubme .edit { font: 800 13px var(--font); color: var(--accent); }
