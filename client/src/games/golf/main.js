@@ -1,7 +1,8 @@
 // Bonk Golf: flick your creature into the hole. 40 courses, 3 stars each.
 import { createShell } from '../../platform/shell.js';
 import { GameCanvas, Particles, clamp, roundRect } from '../../platform/canvas.js';
-import { drawCreature } from '../../platform/creature.js';
+import { drawCreature, INK } from '../../platform/creature.js';
+import { ICON, STAR } from '../../platform/icons.js';
 import { loadSave, writeSave, store } from '../../platform/run.js';
 import { sfx } from '../../audio.js';
 import { LEVELS, PER_WORLD, WORLDS, SIZE, BALL_R, HOLE_R, getLevel, starsFor } from './levels.js';
@@ -10,7 +11,7 @@ const shell = await createShell({
   game: 'golf',
   help: {
     text: 'Pull back and let go to flick your creature into the hole. Fewer shots means more stars!',
-    controls: [['\u{1F446}', 'Drag back, let go'], ['\u{1F5B1}️', 'Click, drag, release'], ['⌨️', '← → aim, hold Space']],
+    controls: [['swipe', 'Drag back, let go'], ['mouse', 'Click, drag, release'], ['keys', 'Arrows aim, hold Space']],
   },
 });
 
@@ -371,7 +372,7 @@ function openSelect() {
   WORLDS.forEach((w, wi) => {
     const sec = document.createElement('section');
     const h = document.createElement('h3');
-    h.textContent = `${w.emoji} ${w.name}`;
+    h.textContent = w.name;
     const grid = document.createElement('div');
     grid.className = 'lv-grid';
     for (let n = 0; n < PER_WORLD; n++) {
@@ -401,46 +402,54 @@ function openSelect() {
 // ---- drawing
 function drawWorld(c) {
   const wd = WORLDS[L.world];
-  c.fillStyle = wd.grass[0];
+  c.fillStyle = wd.rough;
   c.fillRect(0, 0, gc.w, gc.h);
   c.save();
   c.translate(view.ox, view.oy);
   c.scale(view.s, view.s);
-  c.fillStyle = 'rgba(43,33,80,.25)';
-  roundRect(c, 4, 10, SIZE, SIZE, 26);
+  c.fillStyle = 'rgba(0,0,0,.28)';
+  roundRect(c, 3, 9, SIZE, SIZE, 20);
   c.fill();
   c.save();
-  roundRect(c, 0, 0, SIZE, SIZE, 24);
+  roundRect(c, 0, 0, SIZE, SIZE, 18);
   c.clip();
-  for (let y = 0; y < SIZE; y += 50) for (let x = 0; x < SIZE; x += 50) {
-    c.fillStyle = (x + y) / 50 % 2 === 0 ? wd.grass[0] : wd.grass[1];
-    c.fillRect(x, y, 50, 50);
+  // mowed stripes
+  for (let y = 0; y < SIZE; y += 40) {
+    c.fillStyle = (y / 40) % 2 === 0 ? wd.grass[0] : wd.grass[1];
+    c.fillRect(0, y, SIZE, 40);
   }
   for (const r of L.sand) {
-    c.fillStyle = '#f2d38b';
-    roundRect(c, r.x, r.y, r.w, r.h, 20);
+    c.fillStyle = '#ecd59a';
+    roundRect(c, r.x, r.y, r.w, r.h, 22);
     c.fill();
-    c.fillStyle = 'rgba(184,140,60,.35)';
-    for (let i = 0; i < 14; i++) c.fillRect(r.x + ((i * 37) % r.w), r.y + ((i * 53) % r.h), 3, 3);
+    c.fillStyle = 'rgba(160,120,50,.35)';
+    for (let i = 0; i < 26; i++) c.fillRect(r.x + ((i * 37) % r.w), r.y + ((i * 53) % r.h), 3, 3);
+    c.strokeStyle = 'rgba(160,120,50,.5)';
+    c.lineWidth = 3;
+    roundRect(c, r.x, r.y, r.w, r.h, 22);
+    c.stroke();
   }
   for (const r of L.ice) {
-    c.fillStyle = '#bfeaff';
-    roundRect(c, r.x, r.y, r.w, r.h, 20);
+    const g = c.createLinearGradient(r.x, r.y, r.x + r.w, r.y + r.h);
+    g.addColorStop(0, '#e9f9ff');
+    g.addColorStop(1, '#b4e3f7');
+    c.fillStyle = g;
+    roundRect(c, r.x, r.y, r.w, r.h, 22);
     c.fill();
-    c.strokeStyle = 'rgba(255,255,255,.9)';
+    c.strokeStyle = 'rgba(255,255,255,.95)';
     c.lineWidth = 3;
     c.beginPath();
     c.moveTo(r.x + 18, r.y + r.h - 18);
-    c.lineTo(r.x + 50, r.y + 22);
-    c.moveTo(r.x + 40, r.y + r.h - 12);
-    c.lineTo(r.x + 66, r.y + 40);
+    c.lineTo(r.x + 52, r.y + 22);
+    c.moveTo(r.x + 42, r.y + r.h - 12);
+    c.lineTo(r.x + 68, r.y + 40);
     c.stroke();
   }
   for (const r of L.water) {
-    c.fillStyle = '#3aa6ee';
+    c.fillStyle = '#2b8fd8';
     roundRect(c, r.x, r.y, r.w, r.h, 18);
     c.fill();
-    c.strokeStyle = 'rgba(255,255,255,.55)';
+    c.strokeStyle = 'rgba(255,255,255,.5)';
     c.lineWidth = 3;
     for (let i = 0; i < 3; i++) {
       c.beginPath();
@@ -448,81 +457,107 @@ function drawWorld(c) {
       for (let x = 0; x <= r.w - 24; x += 8) c.lineTo(r.x + 12 + x, yy + Math.sin(time * 3 + x * 0.15 + i) * 3);
       c.stroke();
     }
+    c.strokeStyle = 'rgba(10,50,100,.55)';
+    c.lineWidth = 3;
+    roundRect(c, r.x, r.y, r.w, r.h, 18);
+    c.stroke();
   }
-  // tee + hole
-  c.fillStyle = 'rgba(255,255,255,.55)';
+  // tee marker
+  c.strokeStyle = 'rgba(255,255,255,.7)';
+  c.lineWidth = 4;
+  c.setLineDash([6, 8]);
   c.beginPath();
   c.arc(L.tee.x, L.tee.y, 22, 0, 7);
-  c.fill();
-  c.fillStyle = '#2b2150';
+  c.stroke();
+  c.setLineDash([]);
+  // hole + flag
+  c.fillStyle = '#0e1a14';
   c.beginPath();
-  c.arc(L.hole.x, L.hole.y, HOLE_R, 0, 7);
+  c.ellipse(L.hole.x, L.hole.y, HOLE_R, HOLE_R * 0.9, 0, 0, 7);
   c.fill();
-  c.strokeStyle = '#fff';
+  c.strokeStyle = 'rgba(255,255,255,.85)';
   c.lineWidth = 3;
   c.stroke();
-  c.strokeStyle = '#2b2150';
+  c.strokeStyle = '#f4f1ff';
   c.lineWidth = 3;
   c.beginPath();
   c.moveTo(L.hole.x + 2, L.hole.y);
-  c.lineTo(L.hole.x + 2, L.hole.y - 46);
+  c.lineTo(L.hole.x + 2, L.hole.y - 48);
   c.stroke();
-  c.fillStyle = '#ff5fa2';
+  c.fillStyle = '#e5484d';
   c.beginPath();
-  c.moveTo(L.hole.x + 2, L.hole.y - 46);
-  c.lineTo(L.hole.x + 26, L.hole.y - 38 + Math.sin(time * 6) * 2);
-  c.lineTo(L.hole.x + 2, L.hole.y - 28);
+  c.moveTo(L.hole.x + 2, L.hole.y - 48);
+  c.lineTo(L.hole.x + 28, L.hole.y - 40 + Math.sin(time * 6) * 2);
+  c.lineTo(L.hole.x + 2, L.hole.y - 30);
+  c.closePath();
   c.fill();
   for (const p of L.portals) {
-    for (let i = 0; i < 3; i++) {
-      c.strokeStyle = ['#8c5cff', '#d6b8ff', '#fff'][i];
-      c.lineWidth = 5;
-      c.beginPath();
-      c.arc(p.x, p.y, 22 - i * 6, time * (i % 2 ? -3 : 3), time * (i % 2 ? -3 : 3) + 4.4);
-      c.stroke();
-    }
+    const g = c.createRadialGradient(p.x, p.y, 2, p.x, p.y, 24);
+    g.addColorStop(0, '#0d0b25');
+    g.addColorStop(0.6, '#5b3cc4');
+    g.addColorStop(1, 'rgba(155,123,255,0)');
+    c.fillStyle = g;
+    c.beginPath();
+    c.arc(p.x, p.y, 26, 0, 7);
+    c.fill();
+    c.strokeStyle = '#d9ccff';
+    c.lineWidth = 3;
+    c.beginPath();
+    c.arc(p.x, p.y, 20, time * 3, time * 3 + 4.2);
+    c.stroke();
   }
   c.restore();
-  // walls + movers + bumpers sit above the grass edge
-  const wall = (r) => {
-    c.fillStyle = '#7a5a46';
-    roundRect(c, r.x, r.y + 5, r.w, r.h, 8);
+  const wall = (r, hazard) => {
+    c.fillStyle = '#9a7340';
+    roundRect(c, r.x, r.y + 6, r.w, r.h, 7);
     c.fill();
-    c.fillStyle = '#c99a77';
-    roundRect(c, r.x, r.y, r.w, r.h, 8);
+    c.fillStyle = hazard ? '#ffc83d' : '#e8cf9f';
+    roundRect(c, r.x, r.y, r.w, r.h, 7);
     c.fill();
-    c.strokeStyle = '#2b2150';
+    if (hazard) {
+      c.save();
+      roundRect(c, r.x, r.y, r.w, r.h, 7);
+      c.clip();
+      c.fillStyle = '#1d1a3a';
+      for (let k = -r.h; k < r.w + r.h; k += 20) {
+        c.beginPath();
+        c.moveTo(r.x + k, r.y + r.h);
+        c.lineTo(r.x + k + 10, r.y + r.h);
+        c.lineTo(r.x + k + 10 + r.h, r.y);
+        c.lineTo(r.x + k + r.h, r.y);
+        c.fill();
+      }
+      c.restore();
+    }
+    c.strokeStyle = INK;
     c.lineWidth = 3;
+    roundRect(c, r.x, r.y, r.w, r.h, 7);
     c.stroke();
   };
-  L.walls.forEach(wall);
-  for (const m of L.movers) {
-    const r = moverRect(m);
-    c.save();
-    c.globalAlpha = 1;
-    wall(r);
-    c.fillStyle = '#ffd23f';
-    c.fillRect(r.x + 6, r.y + 6, Math.max(4, r.w - 12), Math.max(4, r.h - 12));
-    c.restore();
-  }
+  L.walls.forEach((r) => wall(r, false));
+  for (const m of L.movers) wall(moverRect(m), true);
   for (const b of L.bumpers) {
     b.pulse = Math.max(0, (b.pulse || 0) - 0.06);
     const k = 1 + b.pulse * 0.18;
-    c.fillStyle = '#ff5fa2';
-    c.strokeStyle = '#2b2150';
-    c.lineWidth = 4;
+    const g = c.createRadialGradient(b.x - b.r * 0.3, b.y - b.r * 0.35, b.r * 0.1, b.x, b.y, b.r * k);
+    g.addColorStop(0, '#ff8a8e');
+    g.addColorStop(1, '#d93a42');
+    c.fillStyle = g;
+    c.strokeStyle = INK;
+    c.lineWidth = 3.5;
     c.beginPath();
     c.arc(b.x, b.y, b.r * k, 0, 7);
     c.fill();
     c.stroke();
-    c.fillStyle = '#ffd23f';
+    c.strokeStyle = '#fff';
+    c.lineWidth = 4;
     c.beginPath();
-    c.arc(b.x, b.y, b.r * 0.45 * k, 0, 7);
-    c.fill();
+    c.arc(b.x, b.y, b.r * 0.56 * k, 0, 7);
+    c.stroke();
   }
-  c.strokeStyle = '#2b2150';
+  c.strokeStyle = INK;
   c.lineWidth = 5;
-  roundRect(c, 0, 0, SIZE, SIZE, 24);
+  roundRect(c, 0, 0, SIZE, SIZE, 18);
   c.stroke();
   c.restore();
 }
@@ -575,7 +610,7 @@ gc.update = (dt) => {
 };
 gc.draw = (c) => {
   if (!L) {
-    c.fillStyle = '#8be04e';
+    c.fillStyle = '#1f5f3a';
     c.fillRect(0, 0, gc.w, gc.h);
     return;
   }
@@ -585,7 +620,7 @@ gc.draw = (c) => {
   c.scale(view.s, view.s);
   if (ball) {
     const sinkScale = mode === 'sink' ? Math.max(0.1, 1 - sinkT / 0.45) : 1;
-    drawCreature(c, look(), ball.x, ball.y, BALL_R * 1.25 * sinkScale, { rot: ball.rot * 0.35 });
+    drawCreature(c, look(), ball.x, ball.y, BALL_R * 1.25 * sinkScale, { rot: 0 });
   }
   drawAim(c);
   fx.draw(c);

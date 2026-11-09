@@ -1,13 +1,16 @@
 // Bonk Games hub: your level, daily quest, continue-playing card and a live badge on each game.
 import '@fontsource/baloo-2/700.css';
-import '@fontsource/baloo-2/800.css';
+import '@fontsource/lilita-one/400.css';
+import '@fontsource/nunito/700.css';
+import '@fontsource/nunito/800.css';
 import '../ui.css';
 import '../platform/platform.css';
 import './hub.css';
 import { api, store, bootAccount } from '../platform/run.js';
-import { KIND_ICONS } from '../platform/creature.js';
+import { creatureIcon } from '../platform/creature.js';
+import { paintCover } from '../platform/art.js';
 import { byId } from '../platform/catalog.js';
-import { COLORS, displayName, levelProgress } from '../../../shared/cosmetics.js';
+import { displayName, levelProgress } from '../../../shared/cosmetics.js';
 import '../platform/pwa.js';
 import { initAds } from '../ads.js';
 import { sfx } from '../audio.js';
@@ -27,12 +30,11 @@ function toast(text, ms = 2600) {
 function renderMe() {
   const d = store.data;
   $('hubMe').hidden = false;
-  $('hmAv').textContent = KIND_ICONS[d.kind];
-  $('hmAv').style.background = COLORS[d.col].hex;
+  $('hmAv').src = creatureIcon(d, 92);
   $('hmName').textContent = displayName(d);
   $('hmLvl').textContent = `Level ${levelProgress(d.xp).lv}`;
-  $('hmCoins').textContent = `\u{1FA99} ${d.coins}`;
-  $('hmStreak').textContent = `\u{1F525} ${d.streak || 0}`;
+  $('hmCoins').textContent = `${d.coins} coins`;
+  $('hmStreak').textContent = `${d.streak || 0} day streak`;
 }
 
 function renderContinue() {
@@ -47,7 +49,7 @@ function renderContinue() {
   $('cont').hidden = false;
   $('cont').href = g.path;
   $('cont').style.setProperty('--c', g.color);
-  $('contIco').textContent = g.emoji;
+  paintCover($('contArt'), g.id);
   $('contName').textContent = g.title;
 }
 
@@ -69,7 +71,7 @@ async function renderQuest() {
     try {
       const r = await api.req('/api/quest', {});
       store.adopt(r.profile, store.giftOk);
-      toast(`Quest done! +${r.coins} coins and a capsule \u{1F389}`);
+      toast(`Quest done! +${r.coins} coins and a capsule`);
       sfx.win();
       renderMe();
       renderQuest();
@@ -94,6 +96,8 @@ async function renderBadges() {
   }
 }
 
+document.body.classList.add('bp');
+for (const cv of document.querySelectorAll('canvas[data-art]')) paintCover(cv, cv.dataset.art);
 initAds();
 renderContinue();
 store.onChange(renderMe);

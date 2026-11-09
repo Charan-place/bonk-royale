@@ -1,6 +1,8 @@
 // Bonk Merge: drop creatures; two of the same kind merge into a bigger one. Reach the Legendary Bonk!
 import { createShell } from '../../platform/shell.js';
 import { GameCanvas, Particles, clamp, roundRect, rand } from '../../platform/canvas.js';
+import { drawCreature, INK } from '../../platform/creature.js';
+import { COLORS } from '../../../../shared/cosmetics.js';
 import { sfx } from '../../audio.js';
 import { W, H, DANGER_Y, TIERS, TOP, createWorld, addBall, step } from './physics.js';
 
@@ -8,7 +10,7 @@ const shell = await createShell({
   game: 'merge',
   help: {
     text: 'Drop creatures into the box. When two of the same kind touch, they merge into a bigger one. Do not let the pile reach the top!',
-    controls: [['\u{1F446}', 'Slide, then lift to drop'], ['\u{1F5B1}️', 'Move and click'], ['⌨️', '← → and Space']],
+    controls: [['tap', 'Slide, then lift to drop'], ['mouse', 'Move and click'], ['keys', 'Arrows and Space']],
   },
 });
 
@@ -98,7 +100,7 @@ window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase().replace(
 
 function onMerge(ev) {
   const t = TIERS[ev.tier];
-  fx.burst(view.ox + ev.x * view.s, view.oy + ev.y * view.s, ev.vanish ? 60 : 12 + ev.tier * 3, { colors: [t.color, '#fff', '#ffd23f'], speed: 160 + ev.tier * 30, life: 0.7, size: 6 });
+  fx.burst(view.ox + ev.x * view.s, view.oy + ev.y * view.s, ev.vanish ? 60 : 12 + ev.tier * 3, { colors: [COLORS[t.look.col].hex, '#fff', '#ffd23f'], speed: 160 + ev.tier * 30, life: 0.7, size: 6 });
   floaters.push({ x: ev.x, y: ev.y, t: 0, text: `+${ev.points}${ev.chain > 1 ? ` x${Math.min(4, ev.chain)}` : ''}`, big: ev.chain > 1 });
   if (ev.vanish) {
     sfx.win();
@@ -121,7 +123,8 @@ async function gameOver() {
     score,
     ms,
     title: wasBest && score > 0 ? 'New high score!' : 'Pile is full!',
-    lines: [`${score.toLocaleString()} points`, `Biggest: ${top.icon} ${top.name}`],
+    big: [score.toLocaleString(), 'points'],
+    lines: [`Biggest: ${top.name}`],
     againLabel: 'Play again',
     onAgain: reset,
   }).then((r) => {
@@ -143,70 +146,45 @@ gc.update = (dt) => {
 };
 
 function drawBall(c, b) {
-  const t = TIERS[b.tier];
   const k = 1 + b.pop * 0.22;
-  const r = b.r * k;
-  const g = c.createRadialGradient(b.x - r * 0.35, b.y - r * 0.4, r * 0.1, b.x, b.y, r);
-  g.addColorStop(0, '#ffffff');
-  g.addColorStop(0.25, t.color);
-  g.addColorStop(1, t.color);
-  c.fillStyle = g;
-  c.strokeStyle = '#2b2150';
-  c.lineWidth = Math.max(2.5, r * 0.09);
-  c.beginPath();
-  c.arc(b.x, b.y, r, 0, 7);
-  c.fill();
-  c.stroke();
-  c.font = `${r * 1.2}px system-ui, "Apple Color Emoji", "Segoe UI Emoji"`;
-  c.textAlign = 'center';
-  c.textBaseline = 'middle';
-  c.fillText(t.icon, b.x, b.y + r * 0.05);
+  drawCreature(c, TIERS[b.tier].look, b.x, b.y, b.r * k, { shadow: false });
 }
 
 gc.draw = (c) => {
   const g = c.createLinearGradient(0, 0, 0, gc.h);
-  g.addColorStop(0, '#ffd1ec');
-  g.addColorStop(1, '#ffeaa6');
+  g.addColorStop(0, '#16394a');
+  g.addColorStop(1, '#0f2430');
   c.fillStyle = g;
   c.fillRect(0, 0, gc.w, gc.h);
-  // top bar
-  c.fillStyle = '#2b2150';
-  c.font = '800 22px "Baloo 2", system-ui';
-  c.textAlign = 'left';
   c.textBaseline = 'middle';
-  c.fillText(`Score ${world.score.toLocaleString()}`, 14, 26);
-  c.font = '700 14px "Baloo 2", system-ui';
-  c.fillText(`Best ${Math.max(best, world.score).toLocaleString()}`, 14, 46);
-  // next preview
+  c.textAlign = 'left';
+  c.fillStyle = '#f4f1ff';
+  c.font = '400 26px "Lilita One", system-ui';
+  c.fillText(world.score.toLocaleString(), 16, 24);
+  c.fillStyle = '#8fb3c4';
+  c.font = '800 13px Nunito, system-ui';
+  c.fillText(`BEST ${Math.max(best, world.score).toLocaleString()}`, 16, 44);
+  // next creature
   c.textAlign = 'right';
-  c.font = '800 14px "Baloo 2", system-ui';
-  c.fillText('Next', gc.w - 64, 30);
-  const nt = TIERS[next];
-  c.font = '30px system-ui, "Apple Color Emoji", "Segoe UI Emoji"';
-  c.textAlign = 'center';
-  c.fillStyle = nt.color;
-  c.beginPath();
-  c.arc(gc.w - 36, 28, 22, 0, 7);
-  c.fill();
-  c.strokeStyle = '#2b2150';
-  c.lineWidth = 3;
-  c.stroke();
-  c.fillStyle = '#2b2150';
-  c.fillText(nt.icon, gc.w - 36, 30);
+  c.fillStyle = '#8fb3c4';
+  c.fillText('NEXT', gc.w - 58, 24);
+  drawCreature(c, TIERS[next].look, gc.w - 32, 26, 15, { shadow: false });
 
   c.save();
   const sh = shake > 0 ? (Math.random() - 0.5) * shake * 14 : 0;
   c.translate(view.ox + sh, view.oy + sh);
   c.scale(view.s, view.s);
-  // box
-  c.fillStyle = 'rgba(255,255,255,.55)';
+  // glass jar
+  const jar = c.createLinearGradient(0, 0, 0, H);
+  jar.addColorStop(0, 'rgba(255,255,255,.10)');
+  jar.addColorStop(1, 'rgba(255,255,255,.04)');
+  c.fillStyle = jar;
   roundRect(c, 0, 0, W, H, 22);
   c.fill();
   c.save();
   roundRect(c, 0, 0, W, H, 22);
   c.clip();
-  // danger line
-  c.strokeStyle = world.danger > 0 ? `rgba(255,60,90,${0.5 + Math.sin(performance.now() / 90) * 0.5})` : 'rgba(255,60,90,.4)';
+  c.strokeStyle = world.danger > 0 ? `rgba(255,90,90,${0.55 + Math.sin(performance.now() / 90) * 0.45})` : 'rgba(255,122,89,.55)';
   c.lineWidth = 3;
   c.setLineDash([12, 10]);
   c.beginPath();
@@ -214,11 +192,10 @@ gc.draw = (c) => {
   c.lineTo(W, DANGER_Y);
   c.stroke();
   c.setLineDash([]);
-  // aim guide + held creature
   if (!world.over) {
     const r = TIERS[cur].r;
     const x = clamp(aimX, r, W - r);
-    c.strokeStyle = 'rgba(43,33,80,.25)';
+    c.strokeStyle = 'rgba(255,255,255,.18)';
     c.lineWidth = 2;
     c.setLineDash([4, 8]);
     c.beginPath();
@@ -232,17 +209,16 @@ gc.draw = (c) => {
   }
   for (const b of world.balls) drawBall(c, b);
   c.restore();
-  c.strokeStyle = '#2b2150';
-  c.lineWidth = 6;
+  c.strokeStyle = 'rgba(255,255,255,.35)';
+  c.lineWidth = 4;
   roundRect(c, 0, 0, W, H, 22);
   c.stroke();
-  // floating score
   c.textAlign = 'center';
   for (const f of floaters) {
     c.globalAlpha = 1 - f.t;
-    c.font = `800 ${f.big ? 26 : 20}px "Baloo 2", system-ui`;
-    c.fillStyle = f.big ? '#ff5a7a' : '#2b2150';
-    c.strokeStyle = '#fff';
+    c.font = `400 ${f.big ? 28 : 22}px "Lilita One", system-ui`;
+    c.fillStyle = f.big ? '#ffb020' : '#fff';
+    c.strokeStyle = INK;
     c.lineWidth = 4;
     c.strokeText(f.text, f.x, f.y - f.t * 50);
     c.fillText(f.text, f.x, f.y - f.t * 50);

@@ -1,12 +1,15 @@
 // Page chrome shared by every solo Bonk game: top bar, toasts, instructions, results with rewards,
 // leaderboard and a "next game" card. Games only draw their own canvas inside `shell.play`.
 import '@fontsource/baloo-2/700.css';
-import '@fontsource/baloo-2/800.css';
+import '@fontsource/lilita-one/400.css';
+import '@fontsource/nunito/700.css';
+import '@fontsource/nunito/800.css';
 import '../ui.css';
 import './platform.css';
 import { api, store, bootAccount, finishRun } from './run.js';
 import { levelOf, displayName } from '../../../shared/cosmetics.js';
-import { KIND_ICONS } from './creature.js';
+import { creatureIcon } from './creature.js';
+import { ICON, stars as starsSvg } from './icons.js';
 import { CATALOG, byId } from './catalog.js';
 import { sfx, audioPrefs } from '../audio.js';
 import './pwa.js';
@@ -36,17 +39,19 @@ export async function createShell({ game, help }) {
     /* ignore */
   }
   const app = document.getElementById('app');
+  document.body.classList.add('bp');
+  document.body.dataset.game = game;
   app.innerHTML = `
     <div id="shell">
       <aside class="rail" aria-label="Advertisement"><div class="ad" data-slot="rail"><span>Advertisement</span></div></aside>
       <main id="stage" class="gstage">
         <header class="gbar">
-          <a class="hud-btn" href="/games/" aria-label="All games">&#x1F3E0;</a>
+          <a class="hud-btn" href="/games/" aria-label="All games">${ICON.home}</a>
           <b class="gtitle"></b>
           <span class="gchips"><span class="chip" id="gLvl"></span><span class="chip" id="gCoins"></span></span>
-          <button class="hud-btn" id="gBoard" type="button" aria-label="Leaderboard">&#x1F3C6;</button>
-          <button class="hud-btn" id="gHelp" type="button" aria-label="How to play">&#x2753;</button>
-          <button class="hud-btn" id="gSound" type="button" aria-label="Sound">&#x1F50A;</button>
+          <button class="hud-btn" id="gBoard" type="button" aria-label="Leaderboard">${ICON.trophy}</button>
+          <button class="hud-btn" id="gHelp" type="button" aria-label="How to play">${ICON.help}</button>
+          <button class="hud-btn" id="gSound" type="button" aria-label="Sound"></button>
         </header>
         <div class="gplay" id="gplay"></div>
         <div id="toasts"></div>
@@ -54,19 +59,20 @@ export async function createShell({ game, help }) {
       </main>
     </div>
     <div class="ad banner" data-slot="banner"><span>Advertisement</span></div>`;
-  app.querySelector('.gtitle').textContent = info.emoji + ' ' + info.title;
+  const gt = app.querySelector('.gtitle');
+  gt.append(h('i'), document.createTextNode(info.title));
   const play = document.getElementById('gplay');
   const overlay = document.getElementById('gOverlay');
 
   const refreshChips = () => {
     const d = store.data;
     document.getElementById('gLvl').textContent = `Lv ${levelOf(d.xp)}`;
-    document.getElementById('gCoins').textContent = `\u{1FA99} ${d.coins}`;
+    document.getElementById('gCoins').replaceChildren(h('span', 'coin-dot'), document.createTextNode(String(d.coins)));
   };
   store.onChange(refreshChips);
   refreshChips();
 
-  const setSoundIcon = () => (document.getElementById('gSound').textContent = audioPrefs.get().sfx ? '\u{1F50A}' : '\u{1F507}');
+  const setSoundIcon = () => (document.getElementById('gSound').innerHTML = audioPrefs.get().sfx ? ICON.soundOn : ICON.soundOff);
   setSoundIcon();
   document.getElementById('gSound').addEventListener('click', () => {
     audioPrefs.setSfx(!audioPrefs.get().sfx);
@@ -99,7 +105,9 @@ export async function createShell({ game, help }) {
       const keys = h('div', 'helprow');
       for (const [icon, label] of help.controls) {
         const k = h('div', 'helpkey');
-        k.append(h('span', 'hk-i', icon), h('span', '', label));
+        const ic = h('span', 'hk-i');
+        ic.innerHTML = ICON[icon] || '';
+        k.append(ic, h('span', '', label));
         keys.append(k);
       }
       card.append(keys, button('Got it, let’s play!', 'play small', () => {
@@ -143,7 +151,10 @@ export async function createShell({ game, help }) {
       if (!r.top.length) list.append(h('li', 'empty', 'No scores yet. Be the first!'));
       r.top.forEach((row, i) => {
         const li = h('li', row.me ? 'me' : '');
-        li.append(h('span', 'rk', String(i + 1)), h('span', 'av', KIND_ICONS[row.kind] || '?'), h('span', 'nm', displayName(row)), h('b', 'sc', row.score.toLocaleString()));
+        const av = h('img', 'av');
+        av.src = creatureIcon(row, 32);
+        av.alt = '';
+        li.append(h('span', 'rk', String(i + 1)), av, h('span', 'nm', displayName(row)), h('b', 'sc', row.score.toLocaleString()));
         list.append(li);
       });
       if (r.mine.rank > 20) list.append(h('li', 'me', `You: #${r.mine.rank} · ${r.mine.score.toLocaleString()}`));
@@ -155,9 +166,19 @@ export async function createShell({ game, help }) {
 
   // ---- results
   /** Shows the end-of-run card, reports the score and reveals rewards. */
-  async function finish({ score, ms, extra, title, lines = [], againLabel = 'Play again', onAgain, extraButtons = [], report = true }) {
+  async function finish({ score, ms, extra, title, big, starCount = null, lines = [], againLabel = 'Play again', onAgain, extraButtons = [], report = true }) {
     const card = h('div', 'card result');
     card.append(h('h2', 'gh2', title));
+    if (starCount != null) {
+      const st = h('div', 'stars');
+      st.innerHTML = starsSvg(starCount);
+      card.append(st);
+    }
+    if (big) {
+      const b = h('p', 'res-score', big[0]);
+      b.append(h('small', '', big[1]));
+      card.append(b);
+    }
     for (const l of lines) card.append(h('p', 'sub big', l));
     const rewardBox = h('div', 'rewardbox', report ? 'Saving…' : '');
     card.append(rewardBox);
@@ -172,8 +193,8 @@ export async function createShell({ game, help }) {
     const nextA = h('a', 'nextgame');
     nextA.href = next.path;
     nextA.style.setProperty('--c', next.color);
-    nextA.append(h('span', 'ng-i', next.emoji), h('span', 'ng-t', `Try ${next.title}`), h('small', '', next.blurb));
-    card.append(acts, nextA, button('\u{1F3C6} Leaderboard', 'alt small', () => showBoard()));
+    nextA.append(h('span', 'ng-t', `Next up: ${next.title}`), h('small', '', next.blurb));
+    card.append(acts, nextA, button('Leaderboard', 'alt small', () => showBoard()));
     show(card);
     sfx.win();
     if (!report) return null;
@@ -183,7 +204,7 @@ export async function createShell({ game, help }) {
     else if (r.already) rewardBox.append(h('span', 'rw-note', 'Already counted today. Come back tomorrow!'));
     else {
       const rw = r.reward;
-      rewardBox.append(h('span', 'rw', `+${rw.xp} XP`), h('span', 'rw', `+${rw.coins} \u{1FA99}`));
+      rewardBox.append(h('span', 'rw', `+${rw.xp} XP`), h('span', 'rw', `+${rw.coins} coins`));
       if (r.newBest) rewardBox.append(h('span', 'rw best', 'New best!'));
       if (rw.levelAfter > rw.levelBefore) {
         rewardBox.append(h('div', 'rw lvl', `Level ${rw.levelAfter}! +${rw.levelCapsules} capsule`));

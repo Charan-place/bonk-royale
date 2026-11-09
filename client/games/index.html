@@ -23,61 +23,54 @@
   {"@context":"https://schema.org","@type":"CollectionPage","name":"Bonk Games","url":"https://playbonkroyale.com/games/","description":"Free browser games for kids and adults.","hasPart":[{"@type":"VideoGame","name":"Bonk Royale","url":"https://playbonkroyale.com/"},{"@type":"VideoGame","name":"Bonk Golf","url":"https://playbonkroyale.com/play/golf/"},{"@type":"VideoGame","name":"Bonk Merge","url":"https://playbonkroyale.com/play/merge/"},{"@type":"VideoGame","name":"Hot Potato Bonk","url":"https://playbonkroyale.com/play/potato/"},{"@type":"VideoGame","name":"Bonk Rush","url":"https://playbonkroyale.com/play/rush/"},{"@type":"VideoGame","name":"Daily Bonk","url":"https://playbonkroyale.com/play/daily/"}]}
   </script>
 </head>
-<body>
+<body class="bp">
   <div id="shell">
     <aside class="rail" aria-label="Advertisement"><div class="ad" data-slot="rail"><span>Advertisement</span></div></aside>
     <main id="stage" class="hubpage">
       <header class="hubhead">
-        <h1>Bonk Games</h1>
-        <p class="hubsub">Free games for kids and grown-ups. One account, one level, everywhere.</p>
+        <div><h1 class="wordmark">BONK<span>GAMES</span></h1>
+        <p class="hubsub">Six free games for kids and grown-ups. One account, one level, everywhere.</p></div>
         <div class="hubme" id="hubMe" hidden>
-          <span class="avatar" id="hmAv"></span>
+          <img class="av" id="hmAv" alt="">
           <span class="hm-who"><b id="hmName"></b><small id="hmLvl"></small></span>
           <span class="chip" id="hmCoins"></span>
           <span class="chip" id="hmStreak"></span>
         </div>
       </header>
       <section class="quest" id="quest" hidden aria-live="polite">
-        <span class="q-ico">&#x1F3AF;</span>
         <span class="q-body"><b>Daily quest</b><small id="qText">Play 2 different games today</small><u class="q-bar"><i id="qBar"></i></u></span>
         <button class="btn small" id="qClaim" type="button" hidden>Claim!</button>
       </section>
-      <a class="gcard cont" id="cont" href="/" hidden><span class="gc-ico" id="contIco"></span><span class="gc-body"><b>Continue</b><small id="contName"></small></span><span class="gc-go" aria-hidden="true">GO</span></a>
+      <a class="gcard cont" id="cont" href="/" hidden><canvas class="art" id="contArt" width="128" height="128" aria-hidden="true"></canvas><span class="gc-body"><b>Continue</b><small id="contName"></small></span><span class="go">Play</span></a>
       <nav class="grid" aria-label="Games">
-      <a class="gcard" href="/" data-game="royale" style="--c:#8c5cff">
-        <span class="gc-ico" aria-hidden="true">🥊</span>
+      <a class="gcard" href="/" data-game="royale" style="--c:#9b7bff">
+        <canvas class="art" data-art="royale" width="600" height="300" aria-hidden="true"></canvas>
         <span class="gc-body"><b>Bonk Royale</b><small>Multiplayer</small><span>Flick rivals off a crumbling candy island. Last one standing wins!</span></span>
-        <span class="gc-go" aria-hidden="true">PLAY</span>
         <i class="gc-badge" hidden></i>
       </a>
-      <a class="gcard" href="/play/golf/" data-game="golf" style="--c:#3ee06a">
-        <span class="gc-ico" aria-hidden="true">⛳</span>
+      <a class="gcard" href="/play/golf/" data-game="golf" style="--c:#86e05a">
+        <canvas class="art" data-art="golf" width="600" height="300" aria-hidden="true"></canvas>
         <span class="gc-body"><b>Bonk Golf</b><small>Solo · 40 courses</small><span>Flick your creature into the hole. Bumpers, ice and portals. Earn 3 stars!</span></span>
-        <span class="gc-go" aria-hidden="true">PLAY</span>
         <i class="gc-badge" hidden></i>
       </a>
-      <a class="gcard" href="/play/merge/" data-game="merge" style="--c:#ff5fa2">
-        <span class="gc-ico" aria-hidden="true">🍭</span>
+      <a class="gcard" href="/play/merge/" data-game="merge" style="--c:#ff7a59">
+        <canvas class="art" data-art="merge" width="600" height="300" aria-hidden="true"></canvas>
         <span class="gc-body"><b>Bonk Merge</b><small>Solo · Relaxing</small><span>Drop creatures. Two the same merge into a bigger one. Reach the Legendary Bonk!</span></span>
-        <span class="gc-go" aria-hidden="true">PLAY</span>
         <i class="gc-badge" hidden></i>
       </a>
-      <a class="gcard" href="/play/potato/" data-game="potato" style="--c:#ff8a3d">
-        <span class="gc-ico" aria-hidden="true">💣</span>
+      <a class="gcard" href="/play/potato/" data-game="potato" style="--c:#ffb020">
+        <canvas class="art" data-art="potato" width="600" height="300" aria-hidden="true"></canvas>
         <span class="gc-body"><b>Hot Potato Bonk</b><small>Party vs bots</small><span>Pass the bomb by bumping rivals. Do not be holding it when it pops!</span></span>
-        <span class="gc-go" aria-hidden="true">PLAY</span>
         <i class="gc-badge" hidden></i>
       </a>
-      <a class="gcard" href="/play/rush/" data-game="rush" style="--c:#4fc3ff">
-        <span class="gc-ico" aria-hidden="true">🏃</span>
+      <a class="gcard" href="/play/rush/" data-game="rush" style="--c:#55d0ff">
+        <canvas class="art" data-art="rush" width="600" height="300" aria-hidden="true"></canvas>
         <span class="gc-body"><b>Bonk Rush</b><small>Solo · One thumb</small><span>Dash across icy platforms, grab gems and never stop. How far can you go?</span></span>
-        <span class="gc-go" aria-hidden="true">PLAY</span>
         <i class="gc-badge" hidden></i>
       </a>
-      <a class="gcard" href="/play/daily/" data-game="daily" style="--c:#ffd23f">
-        <span class="gc-ico" aria-hidden="true">📅</span>
+      <a class="gcard" href="/play/daily/" data-game="daily" style="--c:#f2c14e">
+        <canvas class="art" data-art="daily" width="600" height="300" aria-hidden="true"></canvas>
         <span class="gc-body"><b>Daily Bonk</b><small>New every day</small><span>One quick puzzle a day. Same for everyone. Keep your streak alive!</span></span>
-        <span class="gc-go" aria-hidden="true">PLAY</span>
         <i class="gc-badge" hidden></i>
       </a>
       </nav>

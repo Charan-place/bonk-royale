@@ -4,11 +4,11 @@ export const SIZE = 600;
 export const BALL_R = 12;
 export const HOLE_R = 17;
 export const WORLDS = [
-  { name: 'Sunny Meadow', emoji: '\u{1F33C}', grass: ['#8be04e', '#7fd443'] },
-  { name: 'Bumper Bay', emoji: '\u{1F3AF}', grass: ['#7fe0c8', '#6fd4bb'] },
-  { name: 'Ice Rink', emoji: '❄️', grass: ['#cfeeff', '#c2e6fa'] },
-  { name: 'Portal Park', emoji: '\u{1F300}', grass: ['#d6b8ff', '#caa8f8'] },
-  { name: 'Chaos Castle', emoji: '\u{1F3F0}', grass: ['#ffd98a', '#f7cd77'] },
+  { name: 'Sunny Meadow', grass: ['#62c15b', '#58b552'], rough: '#1f5f3a' },
+  { name: 'Bumper Bay', grass: ['#4cbfa6', '#42b199'], rough: '#16574f' },
+  { name: 'Ice Rink', grass: ['#d6edf8', '#c8e4f3'], rough: '#27506b' },
+  { name: 'Dusk Park', grass: ['#6f9fe0', '#6595d8'], rough: '#232e6b' },
+  { name: 'Chaos Castle', grass: ['#d9b57b', '#cfaa6e'], rough: '#5a3a24' },
 ];
 export const PER_WORLD = 8;
 export const LEVELS = WORLDS.length * PER_WORLD;

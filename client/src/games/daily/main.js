@@ -1,5 +1,6 @@
 // Daily Bonk: crack the secret lineup of 4 creatures in 8 tries. Same puzzle for everyone, new every day.
 import { createShell } from '../../platform/shell.js';
+import { creatureIcon } from '../../platform/creature.js';
 import { sfx } from '../../audio.js';
 import { dayKey } from '../../../../shared/progress.js';
 
@@ -7,11 +8,26 @@ const shell = await createShell({
   game: 'daily',
   help: {
     text: 'Guess the secret lineup of 4 creatures (they can repeat). A green dot means the right creature in the right spot, a yellow dot means right creature, wrong spot.',
-    controls: [['\u{1F446}', 'Tap creatures, then Guess'], ['\u{1F5B1}️', 'Click creatures'], ['⌨️', 'Keys 1-6, Enter']],
+    controls: [['tap', 'Tap creatures, then Guess'], ['mouse', 'Click creatures'], ['keys', 'Keys 1-6, Enter']],
   },
 });
 
-const ICONS = ['\u{1F431}', '\u{1F430}', '\u{1F43B}', '\u{1F438}', '\u{1F996}', '\u{1F916}'];
+const LOOKS = [
+  { kind: 0, col: 3, hat: 0 },
+  { kind: 1, col: 0, hat: 0 },
+  { kind: 2, col: 9, hat: 0 },
+  { kind: 3, col: 2, hat: 0 },
+  { kind: 4, col: 6, hat: 0 },
+  { kind: 5, col: 1, hat: 0 },
+];
+const ICONS = LOOKS.map((_, i) => i);
+const img = (i, size) => {
+  const n = document.createElement('img');
+  n.src = creatureIcon(LOOKS[i], size);
+  n.alt = '';
+  n.draggable = false;
+  return n;
+};
 const NAMES = ['Kitty', 'Bunny', 'Bear', 'Froggy', 'Dino', 'Robo'];
 const SLOTS = 4;
 const TRIES = 8;
@@ -101,7 +117,7 @@ ICONS.forEach((ic, i) => {
   const b = el('button', 'dly-pick');
   b.type = 'button';
   b.setAttribute('aria-label', NAMES[i]);
-  b.append(el('span', '', ic), el('small', '', String(i + 1)));
+  b.append(img(i, 84), el('small', '', String(i + 1)));
   b.addEventListener('click', () => pick(i));
   pal.append(b);
 });
@@ -118,7 +134,11 @@ function render() {
     const row = el('div', 'dly-row' + (r === state.rows.length && !state.done ? ' cur' : ''));
     const cells = el('div', 'dly-cells');
     const g = r < state.rows.length ? state.rows[r] : r === state.rows.length && !state.done ? cur : [];
-    for (let i = 0; i < SLOTS; i++) cells.append(el('span', 'dly-cell' + (g[i] != null ? ' f' : ''), g[i] != null ? ICONS[g[i]] : ''));
+    for (let i = 0; i < SLOTS; i++) {
+      const cell = el('span', 'dly-cell' + (g[i] != null ? ' f' : ''));
+      if (g[i] != null) cell.append(img(g[i], 92));
+      cells.append(cell);
+    }
     const pegs = el('div', 'dly-pegs');
     if (r < state.rows.length) {
       const sc = score(state.rows[r], secret);
@@ -133,7 +153,7 @@ function render() {
   back.disabled = state.done || !cur.length;
   pal.classList.toggle('off', state.done);
   if (state.done) {
-    msg.textContent = state.won ? `You cracked it in ${state.rows.length}!` : `Out of tries! It was ${secret.map((i) => ICONS[i]).join(' ')}`;
+    msg.textContent = state.won ? `You cracked it in ${state.rows.length}!` : `Out of tries! It was ${secret.map((i) => NAMES[i]).join(', ')}`;
   } else msg.textContent = `${TRIES - state.rows.length} tries left`;
 }
 
@@ -184,7 +204,8 @@ async function showEnd() {
     ms: Math.max(4000, performance.now() - startedAt),
     report: first,
     title: state.won ? 'Cracked it!' : 'So close!',
-    lines: [state.won ? `${tries} of ${TRIES} tries` : `It was ${secret.map((i) => ICONS[i]).join(' ')}`, `Next puzzle in ${nextIn()}`],
+    big: [state.won ? `${tries}/${TRIES}` : 'X', state.won ? 'tries' : 'out of tries'],
+    lines: [state.won ? 'Come back tomorrow for a new one.' : `It was ${secret.map((i) => NAMES[i]).join(', ')}`, `Next puzzle in ${nextIn()}`],
     againLabel: 'Share result',
     onAgain: async () => {
       const text = shareText();

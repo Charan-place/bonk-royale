@@ -1,7 +1,8 @@
 // Hot Potato Bonk: bump rivals to pass the bomb before the fuse runs out. Last creature standing wins.
 import { createShell } from '../../platform/shell.js';
 import { GameCanvas, Particles, clamp, rand } from '../../platform/canvas.js';
-import { drawCreature } from '../../platform/creature.js';
+import { drawCreature, INK } from '../../platform/creature.js';
+import { drawBomb } from '../../platform/draw.js';
 import { store } from '../../platform/run.js';
 import { sfx } from '../../audio.js';
 import { COLORS, KINDS, nameOf, randomName, displayName } from '../../../../shared/cosmetics.js';
@@ -11,7 +12,7 @@ const shell = await createShell({
   game: 'potato',
   help: {
     text: 'Bump a rival to pass them the bomb. Whoever is holding it when the fuse ends is out. Be the last one standing!',
-    controls: [['\u{1F446}', 'Hold to steer, tap to dash'], ['\u{1F5B1}️', 'Hold to steer, click to dash'], ['⌨️', 'WASD to steer, Space to dash']],
+    controls: [['tap', 'Hold to steer, tap to dash'], ['mouse', 'Hold to steer, click to dash'], ['keys', 'WASD steer, Space dash']],
   },
 });
 
@@ -341,7 +342,8 @@ async function finish() {
     score,
     ms: performance.now() - startedAt,
     title: won ? 'You win!' : 'Boom!',
-    lines: [won ? 'Last one standing! \u{1F451}' : `You survived ${Math.max(0, survived)} round${survived === 1 ? '' : 's'}`, `${passes} pass${passes === 1 ? '' : 'es'} · ${DIFFS[diffKey].label} bots`],
+    big: [String(score), 'points'],
+    lines: [won ? 'Last one standing!' : `You survived ${Math.max(0, survived)} round${survived === 1 ? '' : 's'}`, `${passes} pass${passes === 1 ? '' : 'es'} · ${DIFFS[diffKey].label} bots`],
     againLabel: 'Play again',
     onAgain: reset,
   });
@@ -381,95 +383,102 @@ gc.update = (dt) => {
 };
 
 gc.draw = (c) => {
-  c.fillStyle = '#ffd9a8';
+  const bg = c.createRadialGradient(gc.w / 2, gc.h / 2, 40, gc.w / 2, gc.h / 2, Math.max(gc.w, gc.h) * 0.7);
+  bg.addColorStop(0, '#3a2142');
+  bg.addColorStop(1, '#1a1030');
+  c.fillStyle = bg;
   c.fillRect(0, 0, gc.w, gc.h);
+  const danger = phase === 'play' && fuse < 3;
   c.save();
   const sh = shake > 0 ? (Math.random() - 0.5) * shake * 16 : 0;
   c.translate(view.ox + sh, view.oy + sh);
   c.scale(view.s, view.s);
-  // arena
-  c.fillStyle = 'rgba(43,33,80,.28)';
+  // arena: heated floor with a hazard ring
+  c.fillStyle = 'rgba(0,0,0,.4)';
   c.beginPath();
-  c.arc(CX + 4, CY + 12, ARENA, 0, 7);
+  c.arc(CX + 3, CY + 10, ARENA + 10, 0, 7);
   c.fill();
   c.save();
   c.beginPath();
   c.arc(CX, CY, ARENA, 0, 7);
   c.clip();
   for (let y = 0; y < SIZE; y += 60) for (let x = 0; x < SIZE; x += 60) {
-    c.fillStyle = (x + y) / 60 % 2 === 0 ? '#ffb27a' : '#ffc597';
+    c.fillStyle = (x + y) / 60 % 2 === 0 ? '#d8693a' : '#cd5f31';
     c.fillRect(x, y, 60, 60);
   }
+  if (danger) {
+    c.fillStyle = `rgba(255,60,40,${0.12 + Math.sin(performance.now() / 110) * 0.08})`;
+    c.fillRect(0, 0, SIZE, SIZE);
+  }
   c.restore();
-  c.strokeStyle = '#2b2150';
-  c.lineWidth = 8;
+  c.lineWidth = 14;
+  c.strokeStyle = '#ffc83d';
   c.beginPath();
-  c.arc(CX, CY, ARENA, 0, 7);
+  c.arc(CX, CY, ARENA + 3, 0, 7);
   c.stroke();
-  const holder = cs.find((x) => x.bomb && x.alive);
-  const danger = phase === 'play' && fuse < 3;
-  // creatures, sorted for overlap
+  c.strokeStyle = INK;
+  c.setLineDash([22, 22]);
+  c.beginPath();
+  c.arc(CX, CY, ARENA + 3, 0, 7);
+  c.stroke();
+  c.setLineDash([]);
   for (const cr of [...cs].filter((x) => x.alive).sort((a, b) => a.y - b.y)) {
     if (cr.bomb) {
-      c.strokeStyle = danger ? `rgba(255,60,60,${0.5 + Math.sin(performance.now() / 70) * 0.5})` : '#ff5a3d';
-      c.lineWidth = 6;
+      c.strokeStyle = danger ? `rgba(255,70,50,${0.55 + Math.sin(performance.now() / 70) * 0.45})` : 'rgba(255,200,61,.9)';
+      c.lineWidth = 5;
       c.beginPath();
       c.arc(cr.x, cr.y, R + 8, 0, 7);
       c.stroke();
     }
     if (cr.human) {
-      c.fillStyle = 'rgba(106,44,255,.35)';
+      c.fillStyle = 'rgba(85,208,255,.32)';
       c.beginPath();
-      c.arc(cr.x, cr.y, R + 7, 0, 7);
+      c.arc(cr.x, cr.y, R + 9, 0, 7);
       c.fill();
+      c.strokeStyle = '#55d0ff';
+      c.lineWidth = 3;
+      c.stroke();
     }
     drawCreature(c, cr.look, cr.x, cr.y, R, { rot: Math.sin(cr.spin) * 0.25 });
-    c.font = '700 13px "Baloo 2", system-ui';
+    c.font = '800 13px Nunito, system-ui';
     c.textAlign = 'center';
-    c.fillStyle = cr.human ? '#6a2cff' : '#2b2150';
-    c.strokeStyle = '#fff';
+    c.fillStyle = cr.human ? '#7fe0ff' : '#fff';
+    c.strokeStyle = INK;
     c.lineWidth = 4;
     const label = cr.human ? 'YOU' : cr.name;
-    c.strokeText(label, cr.x, cr.y + R + 18);
-    c.fillText(label, cr.x, cr.y + R + 18);
-    if (cr.bomb) {
-      c.font = '34px system-ui, "Apple Color Emoji", "Segoe UI Emoji"';
-      c.fillText('\u{1F4A3}', cr.x, cr.y - R - 20 + Math.sin(performance.now() / 120) * 3);
-    }
+    c.strokeText(label, cr.x, cr.y + R + 19);
+    c.fillText(label, cr.x, cr.y + R + 19);
+    if (cr.bomb) drawBomb(c, cr.x, cr.y - R - 24 + Math.sin(performance.now() / 120) * 3, 13, performance.now() / 1000, danger);
     if (cr.human && cr.dashCd > 0) {
-      c.strokeStyle = '#6a2cff';
+      c.strokeStyle = '#7fe0ff';
       c.lineWidth = 4;
       c.beginPath();
-      c.arc(cr.x, cr.y, R + 14, -Math.PI / 2, -Math.PI / 2 + (1 - cr.dashCd / 0.85) * Math.PI * 2);
+      c.arc(cr.x, cr.y, R + 15, -Math.PI / 2, -Math.PI / 2 + (1 - cr.dashCd / 0.85) * Math.PI * 2);
       c.stroke();
     }
   }
   c.restore();
-  // HUD
   c.textAlign = 'center';
-  c.font = '800 20px "Baloo 2", system-ui';
-  c.fillStyle = '#2b2150';
   const left = cs.filter((x) => x.alive).length;
+  c.font = '400 22px "Lilita One", system-ui';
   if (phase === 'play') {
-    c.fillStyle = danger ? '#ff3b3b' : '#2b2150';
-    c.fillText(`\u{1F4A3} ${Math.max(0, fuse).toFixed(1)}s  ·  ${left} left  ·  Round ${round}`, gc.w / 2, 24);
+    c.fillStyle = danger ? '#ff6a4d' : '#fff';
+    c.fillText(`${Math.max(0, fuse).toFixed(1)}s   \u00b7   ${left} left   \u00b7   Round ${round}`, gc.w / 2, 26);
   } else {
-    c.fillText(`${left} left`, gc.w / 2, 24);
+    c.fillStyle = '#fff';
+    c.fillText(`${left} left`, gc.w / 2, 26);
   }
   if (msgT > 0) {
     c.globalAlpha = Math.min(1, msgT * 2);
-    c.font = '800 26px "Baloo 2", system-ui';
+    c.font = '400 28px "Lilita One", system-ui';
     c.fillStyle = '#fff';
-    c.strokeStyle = '#2b2150';
+    c.strokeStyle = INK;
     c.lineWidth = 7;
     c.strokeText(message, gc.w / 2, gc.h - 28);
     c.fillText(message, gc.w / 2, gc.h - 28);
     c.globalAlpha = 1;
   }
   fx.draw(c);
-  void holder;
-  void displayName;
-  void clamp;
 };
 
 reset();

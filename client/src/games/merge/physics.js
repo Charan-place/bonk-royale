@@ -3,17 +3,17 @@ export const W = 360;
 export const H = 560;
 export const DANGER_Y = 96;
 export const TIERS = [
-  { r: 17, color: '#ffd23f', icon: '\u{1F425}', name: 'Chick' },
-  { r: 22, color: '#ffb0cc', icon: '\u{1F439}', name: 'Hamster' },
-  { r: 28, color: '#cdb8ff', icon: '\u{1F42D}', name: 'Mouse' },
-  { r: 35, color: '#ff9a62', icon: '\u{1F431}', name: 'Kitty' },
-  { r: 43, color: '#8be04e', icon: '\u{1F430}', name: 'Bunny' },
-  { r: 52, color: '#b4784f', icon: '\u{1F43B}', name: 'Bear' },
-  { r: 62, color: '#3ee0c0', icon: '\u{1F438}', name: 'Froggy' },
-  { r: 73, color: '#4fc3ff', icon: '\u{1F996}', name: 'Dino' },
-  { r: 85, color: '#9fb3c8', icon: '\u{1F916}', name: 'Robo' },
-  { r: 98, color: '#b86bff', icon: '\u{1F47D}', name: 'Alien' },
-  { r: 112, color: '#ffc400', icon: '\u{1F451}', name: 'Legendary Bonk' },
+  { r: 17, look: { kind: 1, col: 3, hat: 0 }, name: 'Bunny' },
+  { r: 22, look: { kind: 0, col: 0, hat: 0 }, name: 'Kitty' },
+  { r: 28, look: { kind: 2, col: 5, hat: 0 }, name: 'Bear' },
+  { r: 35, look: { kind: 3, col: 2, hat: 0 }, name: 'Froggy' },
+  { r: 43, look: { kind: 7, col: 10, hat: 0 }, name: 'Penguin' },
+  { r: 52, look: { kind: 4, col: 6, hat: 0 }, name: 'Dino' },
+  { r: 62, look: { kind: 5, col: 1, hat: 2 }, name: 'Robo' },
+  { r: 73, look: { kind: 6, col: 4, hat: 5 }, name: 'Alien' },
+  { r: 85, look: { kind: 0, col: 7, hat: 3 }, name: 'Gentleman Kitty' },
+  { r: 98, look: { kind: 2, col: 9, hat: 4 }, name: 'Cowboy Bear' },
+  { r: 112, look: { kind: 3, col: 11, hat: 6 }, name: 'Legendary Bonk' },
 ];
 export const TOP = TIERS.length - 1;
 const G = 1500;
