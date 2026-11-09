@@ -303,3 +303,17 @@ html:has(.doc), body:has(.doc) { overflow: auto; }
 .acct-choice { display: grid; gap: 4px; background: #fff; border: 3px solid var(--ink); border-radius: 14px; padding: 8px 10px; margin-bottom: 8px; }
 .acct-choice span { font-weight: 600; font-size: 14px; }
 .btn.danger { color: #b3261e; }
+
+/* ---- More Bonk games shelf ---- */
+.shelf { display: grid; gap: 6px; }
+.shelf-head { display: flex; justify-content: space-between; align-items: baseline; color: #fff; text-shadow: 0 2px 0 var(--ink); font-weight: 800; font-size: 15px; }
+.shelf-head a { color: #fff; font-size: 13px; text-decoration: underline; }
+.shelf-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.shelf-tile { position: relative; display: grid; gap: 4px; justify-items: center; padding: 5px 3px 6px; background: #fff; border: 3px solid var(--ink); border-bottom-width: 5px; border-bottom-color: var(--c); border-radius: 14px; color: var(--ink); text-decoration: none; font-weight: 800; font-size: 12px; line-height: 1.1; text-align: center; transition: transform 0.12s; }
+.shelf-tile:hover, .shelf-tile:focus-visible { transform: translateY(-3px); }
+.shelf-tile canvas { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 9px; }
+.shelf-dot { position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; background: var(--pink); border: 3px solid var(--ink); border-radius: 50%; }
+.nextup { display: grid; gap: 2px; padding: 10px 14px; background: #fff; border: 3px solid var(--ink); border-left: 8px solid var(--c, var(--sun)); border-radius: 16px; color: var(--ink); text-decoration: none; text-align: left; }
+.nextup b { font-size: 18px; }
+.nextup small { font-weight: 700; color: var(--ink-soft); font-size: 13px; }
+@media (max-height: 760px) { .shelf-tile span { display: none; } .shelf-head { font-size: 14px; } }

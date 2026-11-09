@@ -13,6 +13,7 @@ import { OnlineSession, Social, PartyLink, api } from './net.js';
 import { store } from './store.js';
 import { sfx, music, audioPrefs } from './audio.js';
 import './platform/pwa.js';
+import { mountShelf, mountNextUp } from './gameshelf.js';
 import { initAds, adsEnabled, maybeInterstitial, rewardedAvailable, showRewarded } from './ads.js';
 
 const $ = (id) => document.getElementById(id);
@@ -672,6 +673,7 @@ function showEmote(id, k) {
 
 // ------------------------------------------------------------------ results
 function showResults() {
+  mountNextUp($('nextUp'));
   const { mine, reward, players } = payload;
   setScreen('results');
   $('btnRematch').textContent = 'Play again';
@@ -1444,3 +1446,5 @@ async function boot() {
 }
 boot();
 window.__bonk = { stage, store, api, get session() { return session; }, get dbg() { return { aim, myInfo, screen, partyState }; } };
+
+mountShelf($('shelf'));

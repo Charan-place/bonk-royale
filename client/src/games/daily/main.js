@@ -4,6 +4,10 @@ import { creatureIcon } from '../../platform/creature.js';
 import { sfx } from '../../audio.js';
 import { dayKey } from '../../../../shared/progress.js';
 
+try {
+  localStorage.setItem('bonk_seen_daily', dayKey());
+} catch {}
+
 const shell = await createShell({
   game: 'daily',
   help: {
