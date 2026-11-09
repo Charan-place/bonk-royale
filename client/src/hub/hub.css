@@ -35,6 +35,8 @@
 .about p { max-width: 64ch; }
 .about h2 { margin: 0 0 6px; font: 400 22px var(--display); color: var(--text); }
 .about a { color: var(--text); }
+.about h3 { margin: 16px 0 2px; font: 800 16px var(--body, inherit); color: var(--text); }
+.about h3 + p { margin-top: 0; }
 .hubme { text-decoration: none; color: var(--text); transition: background 0.12s; }
 .hubme:hover { background: var(--panel-2); }
 .hubme .edit { font: 800 13px var(--font); color: var(--accent); }
