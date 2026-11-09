@@ -7,9 +7,11 @@
   <meta name="description" content="Play Bonk Royale free in your browser: flick cute creatures, bonk friends off a crumbling candy island and be the last one standing. Multiplayer, no download, easy for kids and fun for adults.">
   <meta name="keywords" content="free online games, multiplayer party game, io game, games for kids, browser game, play with friends, no download">
   <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta name="theme-color" content="#8c5cff">
+  <meta name="theme-color" content="#0e1a2b">
   <link rel="canonical" href="https://playbonkroyale.com/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <meta property="og:site_name" content="Bonk Royale">
   <meta property="og:title" content="Bonk Royale - Free Online Multiplayer Party Game">
   <meta property="og:description" content="Flick. Bonk. Win. Play with friends in seconds. Free, no download, for all ages.">
@@ -75,7 +77,10 @@
             <span class="me-text"><b id="meName">Player</b><span class="lvl"><i id="meLvl">Lv 1</i><span class="xp"><u id="meXp"></u></span></span></span>
           </button>
           <div class="wallet">
+            <button class="chip signin-chip" id="btnSignIn" type="button" hidden>Sign in</button>
             <span class="chip" title="Coins">&#x1FA99; <b id="coins">0</b></span>
+            <a class="hud-btn" id="btnProfile" href="/profile/" aria-label="My profile" title="My profile" style="text-decoration:none">&#x1F464;</a>
+            <a class="hud-btn" id="btnGames" href="/games/" aria-label="More Bonk games" title="More Bonk games" style="text-decoration:none">&#x1F3AE;</a>
             <button class="hud-btn" id="btnHowto" type="button" aria-label="How to play">&#x2753;</button>
             <button class="hud-btn" id="btnSettings" type="button" aria-label="Settings">&#x2699;&#xFE0F;</button>
           </div>
@@ -101,6 +106,7 @@
             <button class="btn alt" id="btnStyle" type="button">&#x1F3A8; Style</button>
             <button class="btn alt" id="btnGift" type="button">&#x1F381; Gift<i class="dot" id="giftDot" hidden></i></button>
           </div>
+          <div class="shelf" id="shelf"></div>
           <p class="status" id="homeStatus" aria-live="polite"></p>
           <nav class="foot"><a href="/how-to-play.html">How to play</a><a href="/about.html">About</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Contact</a></nav>
         </div>
@@ -127,6 +133,7 @@
           <button class="btn capsule" id="btnCapsule" type="button" hidden><span class="cap">&#x1F381;</span> Open your capsule!</button>
           <button class="btn alt wide" id="btnAdBonus" type="button" hidden>&#x1F4FA; Watch a short ad for +30 coins</button>
           <div class="met" id="metBox" hidden><b>Players you met</b><div id="metList"></div></div>
+          <a class="nextup" id="nextUp" hidden></a>
           <button class="btn play" id="btnRematch" type="button">Play again</button>
           <button class="btn alt" id="btnResHome" type="button">Home</button>
         </div>
@@ -144,6 +151,19 @@
           <button class="btn small" type="submit">Save</button>
         </form>
         <p class="namerule" id="nameRule">3 to 14 letters, numbers or spaces. Keep it friendly!</p>
+      </section>
+
+      <section id="welcome" class="screen overlay" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+        <div class="card welcome">
+          <h2 id="welcomeTitle">Welcome to Bonk!</h2>
+          <p class="sub">Sign in to keep your level, coins and looks safe on any device. Or jump straight in as a guest.</p>
+          <div id="welcomeChoice" class="welcome-choice">
+            <button class="btn play" id="btnWelcomeSign" type="button">Sign in with Google</button>
+            <button class="btn alt" id="btnWelcomeGuest" type="button">Play as guest</button>
+          </div>
+          <div id="welcomeBox" hidden></div>
+          <button class="btn small alt" id="btnWelcomeSkip" type="button" hidden>Play as guest instead</button>
+        </div>
       </section>
 
       <section id="howto" class="screen overlay" hidden role="dialog" aria-modal="true" aria-labelledby="howtoTitle">

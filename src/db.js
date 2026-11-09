@@ -1,6 +1,7 @@
 // Account storage helpers (D1). Tokens are random secrets; only their SHA-256 hash is stored.
 import { newProfile, touchDay } from '../shared/progress.js';
 import { itemInfo } from '../shared/cosmetics.js';
+import { maskEmail } from './auth.js';
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -43,7 +44,29 @@ function rowToProfile(row, owned) {
     matches: row.matches,
     wins: row.wins,
     kos: row.kos,
+    linked: !!row.google_sub,
+    emailHint: row.google_sub ? maskEmail(row.email || '') : '',
+    prefs: parsePrefs(row.prefs),
   };
+}
+
+const PREF_DIFFS = ['easy', 'medium', 'hard'];
+/** Only these keys are ever stored; anything else is dropped. */
+export function cleanPrefs(raw) {
+  const o = raw && typeof raw === 'object' ? raw : {};
+  const out = {};
+  if (PREF_DIFFS.includes(o.diff)) out.diff = o.diff;
+  if (typeof o.sound === 'boolean') out.sound = o.sound;
+  if (typeof o.music === 'boolean') out.music = o.music;
+  if (o.howto === true) out.howto = true;
+  return out;
+}
+function parsePrefs(text) {
+  try {
+    return cleanPrefs(JSON.parse(text));
+  } catch {
+    return {};
+  }
 }
 
 export async function createUser(env) {
@@ -80,7 +103,9 @@ export async function loadUser(env, id) {
 export async function loadByToken(env, token) {
   if (typeof token !== 'string' || token.length < 20 || token.length > 80) return null;
   const hash = await sha256Hex(token);
-  const row = await env.DB.prepare('SELECT id FROM users WHERE token_hash = ?').bind(hash).first();
+  const row =
+    (await env.DB.prepare('SELECT id FROM users WHERE token_hash = ?').bind(hash).first()) ||
+    (await env.DB.prepare('SELECT user_id AS id FROM devices WHERE token_hash = ?').bind(hash).first());
   return row ? loadUser(env, row.id) : null;
 }
 
@@ -111,8 +136,8 @@ export function card(p) {
 
 /** Full private profile for the owner. */
 export function ownProfile(p) {
-  const { id, code, name, alias, kind, col, hat, trail, xp, coins, capsules, meter, pity, owned, streak, lastDay, giftDay, matches, wins, kos } = p;
-  return { id, code, name, alias, kind, col, hat, trail, xp, coins, capsules, meter, pity, owned, streak, lastDay, giftDay, matches, wins, kos };
+  const { id, code, name, alias, kind, col, hat, trail, xp, coins, capsules, meter, pity, owned, streak, lastDay, giftDay, matches, wins, kos, linked, emailHint, prefs } = p;
+  return { id, code, name, alias, kind, col, hat, trail, xp, coins, capsules, meter, pity, owned, streak, lastDay, giftDay, matches, wins, kos, linked, emailHint, prefs };
 }
 
 export async function recordMet(env, ids) {
@@ -128,3 +153,53 @@ export async function recordMet(env, ids) {
   }
   if (stmts.length) await env.DB.batch(stmts.slice(0, 50));
 }
+
+// ---- Google link / devices / delete -------------------------------------------------------------
+
+export async function loadByGoogle(env, sub) {
+  const row = await env.DB.prepare('SELECT id FROM users WHERE google_sub = ?').bind(sub).first();
+  return row ? loadUser(env, row.id) : null;
+}
+
+export async function linkGoogle(env, userId, g) {
+  await env.DB.prepare('UPDATE users SET google_sub = ?, email = ?, linked_at = ? WHERE id = ?').bind(g.sub, g.email, Date.now(), userId).run();
+}
+
+/** Gives this device a fresh token for an existing account. Other devices stay signed in. */
+export async function addDevice(env, userId) {
+  const token = randomToken();
+  await env.DB.prepare('INSERT INTO devices (token_hash, user_id, created_at) VALUES (?, ?, ?)').bind(await sha256Hex(token), userId, Date.now()).run();
+  return token;
+}
+
+export async function removeDevice(env, token) {
+  await env.DB.prepare('DELETE FROM devices WHERE token_hash = ?').bind(await sha256Hex(token)).run();
+}
+
+export async function savePrefs(env, userId, prefs) {
+  await env.DB.prepare('UPDATE users SET prefs = ? WHERE id = ?').bind(JSON.stringify(cleanPrefs(prefs)), userId).run();
+}
+
+export async function touchSeen(env, userId) {
+  await env.DB.prepare('UPDATE users SET last_seen = ? WHERE id = ?').bind(Date.now(), userId).run();
+}
+
+/** Removes a player and everything tied to them. Used for account deletion and for discarding merged rows. */
+export async function deleteUser(env, id) {
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM inventory WHERE user_id = ?').bind(id),
+    env.DB.prepare('DELETE FROM friends WHERE user_id = ? OR friend_id = ?').bind(id, id),
+    env.DB.prepare('DELETE FROM met WHERE user_id = ? OR other_id = ?').bind(id, id),
+    env.DB.prepare('DELETE FROM devices WHERE user_id = ?').bind(id),
+    env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id),
+  ]);
+}
+
+/** Everything we hold about a player, for the "download my data" button. */
+export async function exportUser(env, p) {
+  const friends = await env.DB.prepare("SELECT friend_id, state, at FROM friends WHERE user_id = ?").bind(p.id).all();
+  return { profile: ownProfile(p), friends: friends.results, note: 'Google email is stored only to recognise your account.' };
+}
+
+/** A device with no real play yet can be replaced by a saved account without losing anything. */
+export const isFresh = (p) => p.matches === 0 && p.xp === 0;

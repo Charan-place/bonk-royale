@@ -113,7 +113,7 @@ function buildHat(idx) {
 }
 
 const labelCache = new Map();
-const ME_COLOR = '#6a2cff';
+const ME_COLOR = '#0a7cff';
 let youTex = null;
 function youTexture() {
   if (youTex) return youTex;

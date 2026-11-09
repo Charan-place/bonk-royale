@@ -12,7 +12,7 @@ import { createPuck, updatePuck, bumpPuck } from './puck.js';
 
 const TILE_H = 46;
 const PALETTE = ['#ff6fae', '#4fc0ff', '#ffd04a'];
-const ORB_COLORS = { mega: '#ffb000', shield: '#4fe0ff', rocket: '#ff4d2a', quake: '#b86bff' };
+const ORB_COLORS = { mega: '#ffb000', shield: '#4fe0ff', rocket: '#ff4d2a', quake: '#ff7ad0' };
 const ORB_ICONS = { mega: '\u{1F4AA}', shield: '\u{1F6E1}️', rocket: '\u{1F680}', quake: '\u{1F4A5}' };
 
 const FinalPass = {
@@ -177,7 +177,7 @@ export class Stage {
   }
 
   _lights() {
-    const hemi = new THREE.HemisphereLight('#fff0fb', '#8fa6ff', 0.9);
+    const hemi = new THREE.HemisphereLight('#fff6ec', '#7fb8d8', 0.9);
     this.scene.add(hemi);
     const sun = new THREE.DirectionalLight('#fff4e0', 2.1);
     sun.position.set(700, 1500, 800);
@@ -235,7 +235,7 @@ export class Stage {
     this.candy = [];
     const donutGeo = new THREE.TorusGeometry(120, 52, 14, 28);
     const stickGeo = new THREE.CylinderGeometry(7, 7, 220, 8);
-    const candyColors = ['#ff6fb0', '#6fd6ff', '#ffd84a', '#9d7bff', '#7be86a', '#ff8a4d'];
+    const candyColors = ['#ff6fb0', '#6fd6ff', '#ffd84a', '#37c5b2', '#7be86a', '#ff8a4d'];
     for (let i = 0; i < 16; i++) {
       const g = new THREE.Group();
       const col = candyColors[i % candyColors.length];
@@ -532,7 +532,7 @@ export class Stage {
         break;
       case 'tile': {
         const L = this.layout && this.layout[e.i];
-        if (L) fx.puff(L.x, 20, L.y, '#e8d9ff', 5, 90);
+        if (L) fx.puff(L.x, 20, L.y, '#f2eadf', 5, 90);
         break;
       }
       case 'tilefall': {
