@@ -26,6 +26,7 @@ function rowToProfile(row, owned) {
     id: row.id,
     code: row.code,
     name: [row.name_a, row.name_b, row.name_n],
+    alias: row.alias || '',
     kind: row.kind,
     col: row.col,
     hat: row.hat,
@@ -93,8 +94,8 @@ export async function loadByCode(env, code) {
 export async function saveUser(env, before, p) {
   const stmts = [
     env.DB.prepare(
-      'UPDATE users SET name_a=?, name_b=?, name_n=?, kind=?, col=?, hat=?, trail=?, xp=?, coins=?, capsules=?, meter=?, pity=?, streak=?, last_day=?, gift_day=?, matches=?, wins=?, kos=? WHERE id=?'
-    ).bind(p.name[0], p.name[1], p.name[2], p.kind, p.col, p.hat, p.trail, p.xp, p.coins, p.capsules, p.meter, p.pity, p.streak, p.lastDay, p.giftDay, p.matches, p.wins, p.kos, before.id),
+      'UPDATE users SET name_a=?, name_b=?, name_n=?, alias=?, kind=?, col=?, hat=?, trail=?, xp=?, coins=?, capsules=?, meter=?, pity=?, streak=?, last_day=?, gift_day=?, matches=?, wins=?, kos=? WHERE id=?'
+    ).bind(p.name[0], p.name[1], p.name[2], p.alias || '', p.kind, p.col, p.hat, p.trail, p.xp, p.coins, p.capsules, p.meter, p.pity, p.streak, p.lastDay, p.giftDay, p.matches, p.wins, p.kos, before.id),
   ];
   const had = new Set(before.owned);
   for (const it of p.owned) {
@@ -105,13 +106,13 @@ export async function saveUser(env, before, p) {
 
 /** What other players may see about someone. */
 export function card(p) {
-  return { id: p.id, code: p.code, name: p.name, kind: p.kind, col: p.col, hat: p.hat, trail: p.trail };
+  return { id: p.id, code: p.code, name: p.name, alias: p.alias || '', kind: p.kind, col: p.col, hat: p.hat, trail: p.trail };
 }
 
 /** Full private profile for the owner. */
 export function ownProfile(p) {
-  const { id, code, name, kind, col, hat, trail, xp, coins, capsules, meter, pity, owned, streak, lastDay, giftDay, matches, wins, kos } = p;
-  return { id, code, name, kind, col, hat, trail, xp, coins, capsules, meter, pity, owned, streak, lastDay, giftDay, matches, wins, kos };
+  const { id, code, name, alias, kind, col, hat, trail, xp, coins, capsules, meter, pity, owned, streak, lastDay, giftDay, matches, wins, kos } = p;
+  return { id, code, name, alias, kind, col, hat, trail, xp, coins, capsules, meter, pity, owned, streak, lastDay, giftDay, matches, wins, kos };
 }
 
 export async function recordMet(env, ids) {

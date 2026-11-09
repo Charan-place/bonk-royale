@@ -563,7 +563,7 @@ function startFall(m, p) {
   p.lives--;
   p.alive = m.pt;
   const left = alive(m).length;
-  p.place = p.lives > 0 ? 0 : left + 1;
+  if (m.phase !== 'over') p.place = p.lives > 0 ? 0 : left + 1; // places are final once the match is over
   const by = p.lastHit && m.t - p.lastHit.t < 3.5 ? m.pucks.find((q) => q.id === p.lastHit.id) : null;
   const killer = by && by.team !== p.team ? by : null;
   if (killer) {
@@ -594,7 +594,8 @@ function checkEnd(m) {
   let winTeam;
   if (live.length) winTeam = live[0].team;
   else {
-    const last = [...m.pucks].sort((a, b) => b.alive - a.alive)[0];
+    // everyone fell on the same tick: the one who fell last (place 1) wins, else whoever lasted longest
+    const last = m.pucks.find((p) => p.place === 1) || [...m.pucks].sort((a, b) => b.alive - a.alive)[0];
     winTeam = last ? last.team : null;
     for (const p of m.pucks) if (!p.place) p.place = m.pucks.length;
   }
@@ -602,6 +603,16 @@ function checkEnd(m) {
   for (const p of m.pucks) {
     if (p.team === winTeam) p.place = 1;
     else if (!p.place) p.place = 2;
+  }
+  if (new Set(m.pucks.map((p) => p.team)).size === m.pucks.length) {
+    // no teams: give every player their own place (ties from same-tick falls or the time cap are broken by lives, then time alive)
+    const rank = (p) => [p.team === winTeam ? 0 : 1, p.place || 99, -p.lives, -(p.alive || 0)];
+    const order = [...m.pucks].sort((a, b) => {
+      const x = rank(a);
+      const y = rank(b);
+      return x[0] - y[0] || x[1] - y[1] || x[2] - y[2] || x[3] - y[3];
+    });
+    order.forEach((p, i) => (p.place = i + 1));
   }
   m.events.push({ type: 'over', winner: m.winner });
 }

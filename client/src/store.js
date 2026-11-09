@@ -89,6 +89,16 @@ class Store {
     return ok;
   }
 
+  async setName(name) {
+    if (this.remote) {
+      const r = await api.req('/api/name/set', { name });
+      return this.adopt(r.profile);
+    }
+    this.data.alias = name;
+    this.saveLocal();
+    this.emit();
+  }
+
   async reroll() {
     if (this.remote) {
       const r = await api.req('/api/name/reroll', {});
@@ -96,6 +106,7 @@ class Store {
     }
     const { randomName } = await import('../../shared/cosmetics.js');
     this.data.name = randomName();
+    this.data.alias = '';
     this.saveLocal();
     this.emit();
   }
