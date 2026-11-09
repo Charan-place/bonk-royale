@@ -2,6 +2,7 @@
 import { createUser, loadByToken, loadByCode, loadUser, saveUser, card, ownProfile } from './db.js';
 import { touchDay, giftReady, claimGift, equip, openCapsule } from '../shared/progress.js';
 import { randomName } from '../shared/cosmetics.js';
+import { checkName } from '../shared/names.js';
 import { allow, push, presence } from './hub.js';
 
 const json = (data, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
@@ -77,6 +78,16 @@ export async function handleApi(request, env) {
     }
     if (path === '/api/name/reroll') {
       me.name = randomName();
+      me.alias = '';
+      await saveUser(env, before, me);
+      return json({ profile: ownProfile(me) });
+    }
+
+    if (path === '/api/name/set') {
+      if (!(await allow(env, 'rename:' + me.id, 8, 3600))) return fail('You changed your name a lot! Try again later.', 429);
+      const r = checkName(body.name);
+      if (!r.ok) return fail(r.error);
+      me.alias = r.name;
       await saveUser(env, before, me);
       return json({ profile: ownProfile(me) });
     }
