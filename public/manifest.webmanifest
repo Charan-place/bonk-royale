@@ -1,0 +1,20 @@
+{
+  "name": "Bonk Games",
+  "short_name": "Bonk",
+  "description": "Free games for kids and adults: Bonk Royale, Golf, Merge, Hot Potato, Rush and a daily puzzle.",
+  "start_url": "/games/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#6b5bff",
+  "theme_color": "#8c5cff",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Bonk Royale", "url": "/" },
+    { "name": "Daily Bonk", "url": "/play/daily/" }
+  ]
+}

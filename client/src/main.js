@@ -3,6 +3,7 @@ import '@fontsource/baloo-2/800.css';
 import './ui.css';
 import { C, MODES, pointToHex } from '../../shared/sim.js';
 import { DIFFS, diffOf } from '../../shared/difficulty.js';
+import { mountAccountBox, googleClientId } from './account.js';
 import { KINDS, COLORS, HATS, TRAILS, EMOTES, RARITY, nameOf, randomName, displayName, levelProgress } from '../../shared/cosmetics.js';
 import { checkName, NAME_MAX } from '../../shared/names.js';
 import { Stage } from './scene.js';
@@ -11,6 +12,8 @@ import { LocalSession } from './session.js';
 import { OnlineSession, Social, PartyLink, api } from './net.js';
 import { store } from './store.js';
 import { sfx, music, audioPrefs } from './audio.js';
+import './platform/pwa.js';
+import { mountShelf, mountNextUp } from './gameshelf.js';
 import { initAds, adsEnabled, maybeInterstitial, rewardedAvailable, showRewarded } from './ads.js';
 
 const $ = (id) => document.getElementById(id);
@@ -409,6 +412,11 @@ function showcaseView() {
   };
 }
 
+try {
+  localStorage.setItem('bonk_last_game', 'royale');
+} catch {
+  /* ignore */
+}
 function goHome() {
   if (session) session.close();
   session = null;
@@ -517,6 +525,7 @@ function startOnline({ mode: m, room = '' }) {
     onResults: (r) => {
       finished = true;
       if (r.profile) store.adopt(r.profile, store.giftOk);
+      nudgeSave();
       payload = {
         mine: r.mine,
         reward: r.reward || { xp: 0, coins: 0, levelBefore: store.level, levelAfter: store.level, levelCapsules: 0 },
@@ -664,6 +673,7 @@ function showEmote(id, k) {
 
 // ------------------------------------------------------------------ results
 function showResults() {
+  mountNextUp($('nextUp'));
   const { mine, reward, players } = payload;
   setScreen('results');
   $('btnRematch').textContent = 'Play again';
@@ -1068,14 +1078,14 @@ function buildDemo() {
   // me
   const me = add(scene, 'g', { class: 'me' });
   add(me, 'ellipse', { cx: 110, cy: 107, rx: 24, ry: 11, fill: 'none', stroke: '#fff', 'stroke-width': 7 });
-  add(me, 'ellipse', { cx: 110, cy: 107, rx: 24, ry: 11, fill: 'none', stroke: '#6a2cff', 'stroke-width': 4.5 });
-  add(me, 'circle', { cx: 110, cy: 100, r: 15, fill: '#ff6fa0', stroke: '#6a2cff', 'stroke-width': 3.5 });
+  add(me, 'ellipse', { cx: 110, cy: 107, rx: 24, ry: 11, fill: 'none', stroke: '#0a7cff', 'stroke-width': 4.5 });
+  add(me, 'circle', { cx: 110, cy: 100, r: 15, fill: '#ff6fa0', stroke: '#0a7cff', 'stroke-width': 3.5 });
   for (const dx of [-5, 5]) {
     add(me, 'circle', { cx: 110 + dx, cy: 97, r: 3, fill: '#fff' });
     add(me, 'circle', { cx: 110 + dx, cy: 97.5, r: 1.5, fill: '#2b2150' });
   }
   const tag = add(me, 'g', {});
-  add(tag, 'rect', { x: 94, y: 66, width: 32, height: 15, rx: 7.5, fill: '#6a2cff', stroke: '#fff', 'stroke-width': 2 });
+  add(tag, 'rect', { x: 94, y: 66, width: 32, height: 15, rx: 7.5, fill: '#0a7cff', stroke: '#fff', 'stroke-width': 2 });
   const yt = add(tag, 'text', { x: 110, y: 77.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 10, 'font-weight': 800 });
   yt.textContent = 'YOU';
   // pointers
@@ -1160,6 +1170,7 @@ for (const b of document.querySelectorAll('[data-diff]')) {
       /* best effort */
     }
     showDiff();
+    if (api.remote) api.req('/api/prefs', { diff }).catch(() => {});
     if (partyLink.active && partyState && partyState.leader === store.data.id) partyLink.send({ t: 'diff', v: diff });
   });
 }
@@ -1175,6 +1186,13 @@ $('btnStyle').addEventListener('click', () => {
   $('styleSheet').hidden = false;
   $('friendsSheet').hidden = true;
 });
+let renderAccount = () => {};
+/** Soft, rare reminder after a few matches. Never blocks play. */
+function nudgeSave() {
+  const d = store.data;
+  if (!api.remote || d.linked || ![1, 5, 15].includes(d.matches)) return;
+  setTimeout(() => toast('Save your progress so you never lose it!', 7000, [['Save', openProgress], ['Later', () => {}]]), 4000);
+}
 function renderProgress() {
   const d = store.data;
   const p = levelProgress(d.xp);
@@ -1207,9 +1225,7 @@ function renderProgress() {
       return c;
     })
   );
-  $('saveBox').textContent = api.remote
-    ? 'Your progress is saved to this device. Sign in to keep it safe and play anywhere!'
-    : 'Offline practice: progress stays on this device.';
+  renderAccount();
 }
 function openProgress() {
   sfx.click();
@@ -1218,6 +1234,65 @@ function openProgress() {
   $('styleSheet').hidden = true;
   $('friendsSheet').hidden = true;
 }
+renderAccount = mountAccountBox($('saveBox'), { store, toast, sfx });
+
+// First-visit choice: sign in with Google or play as a guest. Guests keep a small "Sign in" chip.
+const WELCOME_KEY = 'bonk_welcome';
+let welcomeBoxMounted = false;
+function closeWelcome(remember = true) {
+  $('welcome').hidden = true;
+  if (!remember) return;
+  try {
+    localStorage.setItem(WELCOME_KEY, '1');
+  } catch {
+    /* shown again next visit */
+  }
+}
+function openWelcome() {
+  $('welcomeChoice').hidden = false;
+  $('welcomeBox').hidden = true;
+  $('btnWelcomeSkip').hidden = true;
+  $('welcome').hidden = false;
+}
+async function syncSignIn() {
+  const show = api.remote && !store.data.linked && !!(await googleClientId());
+  $('btnSignIn').hidden = !show;
+  if (store.data.linked) closeWelcome(false);
+  return show;
+}
+async function maybeWelcome() {
+  let seen = false;
+  try {
+    seen = localStorage.getItem(WELCOME_KEY) === '1';
+  } catch {
+    seen = true;
+  }
+  if (seen || params.get('join') || !(await syncSignIn())) return;
+  openWelcome();
+}
+$('btnSignIn').addEventListener('click', () => {
+  sfx.click();
+  openWelcome();
+});
+$('btnWelcomeGuest').addEventListener('click', () => {
+  sfx.click();
+  closeWelcome();
+});
+$('btnWelcomeSkip').addEventListener('click', () => {
+  sfx.click();
+  closeWelcome();
+});
+$('btnWelcomeSign').addEventListener('click', () => {
+  sfx.click();
+  if (!welcomeBoxMounted) {
+    mountAccountBox($('welcomeBox'), { store, toast, sfx });
+    welcomeBoxMounted = true;
+  }
+  $('welcomeChoice').hidden = true;
+  $('welcomeBox').hidden = false;
+  $('btnWelcomeSkip').hidden = false;
+});
+store.onChange(syncSignIn);
 $('meCard').addEventListener('click', openProgress);
 $('btnProgStyle').addEventListener('click', () => {
   $('progressSheet').hidden = true;
@@ -1408,7 +1483,15 @@ async function boot() {
   try {
     const me = await api.ensureAccount();
     store.adopt(me.profile, me.giftReady);
+    if (me.profile.prefs && me.profile.prefs.diff) {
+      diff = diffOf(me.profile.prefs.diff);
+      showDiff();
+    }
     social.start();
+    if (params.get('save') === '1') {
+      history.replaceState(null, '', location.pathname);
+      openProgress();
+    }
     const join = (params.get('join') || '').toUpperCase();
     if (/^[A-HJ-NP-Z2-9]{5}$/.test(join)) {
       history.replaceState(null, '', location.pathname);
@@ -1418,6 +1501,9 @@ async function boot() {
     el.status.textContent = 'Offline practice mode: play against bots. Progress stays on this device.';
   }
   renderHome();
+  maybeWelcome();
 }
 boot();
 window.__bonk = { stage, store, api, get session() { return session; }, get dbg() { return { aim, myInfo, screen, partyState }; } };
+
+mountShelf($('shelf'));

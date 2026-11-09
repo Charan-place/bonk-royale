@@ -96,3 +96,14 @@ export function openCapsule(p, rng = Math.random) {
   } else p.owned.push(roll.item.id);
   return { item: roll.item, rarity: roll.rarity, duplicate: roll.duplicate, coins };
 }
+
+/** Reward from any solo game: adds XP and coins, and a capsule for each level gained. */
+export function grantXp(p, xp, coins) {
+  const before = levelOf(p.xp);
+  p.xp += xp;
+  p.coins += coins;
+  const after = levelOf(p.xp);
+  const levelCapsules = Math.max(0, after - before);
+  p.capsules += levelCapsules;
+  return { xp, coins, levelBefore: before, levelAfter: after, levelCapsules };
+}

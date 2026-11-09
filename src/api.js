@@ -1,6 +1,8 @@
 // JSON API: accounts, profile actions, friends, invites. Auth is a bearer token (no cookies, so no CSRF).
-import { createUser, loadByToken, loadByCode, loadUser, saveUser, card, ownProfile } from './db.js';
-import { touchDay, giftReady, claimGift, equip, openCapsule } from '../shared/progress.js';
+import { createUser, loadByToken, loadByCode, loadUser, saveUser, card, ownProfile, loadByGoogle, linkGoogle, addDevice, removeDevice, savePrefs, touchSeen, deleteUser, exportUser, isFresh } from './db.js';
+import { verifyGoogleToken } from './auth.js';
+import { touchDay, giftReady, claimGift, equip, openCapsule, grantXp, dayKey } from '../shared/progress.js';
+import { GAMES, isGame, gameReward } from '../shared/games.js';
 import { randomName } from '../shared/cosmetics.js';
 import { checkName } from '../shared/names.js';
 import { allow, push, presence } from './hub.js';
@@ -14,9 +16,9 @@ export async function authedUser(request, env) {
   return m ? loadByToken(env, m[1]) : null;
 }
 
-async function readBody(request) {
+async function readBody(request, max = 2048) {
   const text = await request.text();
-  if (text.length > 2048) throw new Error('too large');
+  if (text.length > max) throw new Error('too large');
   return text ? JSON.parse(text) : {};
 }
 
@@ -29,6 +31,7 @@ export async function handleApi(request, env) {
 
   try {
     if (path === '/api/health') return json({ ok: true });
+    if (path === '/api/config') return json({ googleClientId: env.GOOGLE_CLIENT_ID || '' });
 
     if (path === '/api/register' && method === 'POST') {
       if (!(await allow(env, 'reg:' + clientIp(request), 12, 3600))) return fail('Too many new accounts from this network. Try again later.', 429);
@@ -44,11 +47,12 @@ export async function handleApi(request, env) {
       const before = structuredClone(me);
       const changed = touchDay(me);
       if (changed) await saveUser(env, before, me);
+      await touchSeen(env, me.id);
       return json({ profile: ownProfile(me), giftReady: giftReady(me) });
     }
 
     if (method !== 'POST' && method !== 'GET') return fail('Method not allowed', 405);
-    const body = method === 'POST' ? await readBody(request) : {};
+    const body = method === 'POST' ? await readBody(request, path === '/api/auth/google' || path === '/api/game/save' ? 4096 : 2048) : {};
     const before = structuredClone(me);
 
     if (path === '/api/equip') {
@@ -75,6 +79,23 @@ export async function handleApi(request, env) {
       me.coins += 30;
       await saveUser(env, before, me);
       return json({ profile: ownProfile(me) });
+    }
+    if (path.startsWith('/api/game/') || path === '/api/leaderboard' || path === '/api/quest') return gameRoutes(env, me, before, path, method, body, url);
+    if (path === '/api/prefs') {
+      await savePrefs(env, me.id, body);
+      return json({ ok: true });
+    }
+    if (path === '/api/auth/google') return googleSignIn(request, env, me, body);
+    if (path === '/api/auth/signout') {
+      const token = (request.headers.get('Authorization') || '').slice(7);
+      await removeDevice(env, token);
+      return json({ ok: true });
+    }
+    if (path === '/api/account/export' && method === 'GET') return json(await exportUser(env, me));
+    if (path === '/api/account/delete') {
+      if (body.confirm !== 'DELETE') return fail('Confirmation missing');
+      await deleteUser(env, me.id);
+      return json({ ok: true });
     }
     if (path === '/api/name/reroll') {
       me.name = randomName();
@@ -153,9 +174,123 @@ export async function handleApi(request, env) {
     }
     return fail('Not found', 404);
   } catch (e) {
+    if (e && e.message === 'too large') return fail('That is too much data.', 413);
+    if (e instanceof SyntaxError) return fail('Bad request');
     console.error('api error', path, String(e));
     return fail('Something went wrong. Please try again.', 500);
   }
+}
+
+/**
+ * Link this device's account to a Google account, or switch to the account already linked.
+ * Never silently overwrites progress: real progress on both sides asks the player to choose.
+ */
+async function googleSignIn(request, env, me, body) {
+  if (!(await allow(env, 'gauth:' + clientIp(request), 20, 600))) return fail('Too many sign-in tries. Wait a few minutes.', 429);
+  const g = await verifyGoogleToken(body.credential, env.GOOGLE_CLIENT_ID);
+  if (!g) return fail('Google sign-in did not check out. Please try again.', 401);
+  const saved = await loadByGoogle(env, g.sub);
+  if (!saved) {
+    await linkGoogle(env, me.id, g);
+    return json({ status: 'linked', profile: ownProfile(await loadUser(env, me.id)) });
+  }
+  if (saved.id === me.id) {
+    await touchSeen(env, me.id);
+    return json({ status: 'same', profile: ownProfile(saved) });
+  }
+  const choice = body.resolve;
+  if (isFresh(me) || choice === 'account') {
+    // switch this device to the saved account; the empty/unwanted guest row is removed
+    const token = await addDevice(env, saved.id);
+    await deleteUser(env, me.id);
+    await touchSeen(env, saved.id);
+    return json({ status: 'switched', token, profile: ownProfile(saved) });
+  }
+  if (choice === 'device') {
+    // keep this device's progress: it replaces the saved account (the player confirmed this)
+    await deleteUser(env, saved.id);
+    await linkGoogle(env, me.id, g);
+    return json({ status: 'linked', profile: ownProfile(await loadUser(env, me.id)) });
+  }
+  const sum = (p) => ({ xp: p.xp, coins: p.coins, matches: p.matches, wins: p.wins, name: p.alias || p.name, kind: p.kind, col: p.col });
+  return json({ status: 'conflict', device: sum(me), account: sum(saved) });
+}
+
+/** Solo-game endpoints: finish a run, load/save progress, leaderboards. */
+async function gameRoutes(env, me, before, path, method, body, url) {
+  if (path === '/api/leaderboard' && method === 'GET') {
+    const game = url.searchParams.get('game');
+    if (!isGame(game)) return fail('Unknown game');
+    const today = url.searchParams.get('period') === 'today';
+    const day = dayKey();
+    const col = today ? 'day_best' : 'best';
+    const rows = await env.DB.prepare(
+      `SELECT s.user_id, s.${col} AS score FROM scores s WHERE s.game = ? AND s.${col} > 0 ${today ? 'AND s.day = ?' : ''} ORDER BY s.${col} DESC, s.updated_at ASC LIMIT 20`
+    ).bind(...(today ? [game, day] : [game])).all();
+    const top = [];
+    for (const r of rows.results) {
+      const u = await loadUser(env, r.user_id);
+      if (u) top.push({ ...card(u), id: undefined, code: undefined, score: r.score, me: u.id === me.id });
+    }
+    const mine = await env.DB.prepare('SELECT best, day, day_best FROM scores WHERE game = ? AND user_id = ?').bind(game, me.id).first();
+    const myScore = mine ? (today ? (mine.day === day ? mine.day_best : 0) : mine.best) : 0;
+    let rank = 0;
+    if (myScore > 0) {
+      const r = await env.DB.prepare(`SELECT COUNT(*) AS n FROM scores WHERE game = ? AND ${col} > ? ${today ? 'AND day = ?' : ''}`).bind(...(today ? [game, myScore, day] : [game, myScore])).first();
+      rank = r.n + 1;
+    }
+    return json({ top, mine: { score: myScore, rank } });
+  }
+  if (path === '/api/game/save' && method === 'GET') {
+    const game = url.searchParams.get('game');
+    if (!isGame(game)) return fail('Unknown game');
+    const row = await env.DB.prepare('SELECT data FROM game_saves WHERE user_id = ? AND game = ?').bind(me.id, game).first();
+    return json({ data: row ? row.data : '' });
+  }
+  if (path === '/api/game/save' && method === 'POST') {
+    if (!isGame(body.game) || typeof body.data !== 'string' || body.data.length > GAMES[body.game].saveMax) return fail('Bad save');
+    if (!(await allow(env, 'gsave:' + me.id, 120, 3600))) return fail('Saving too fast', 429);
+    await env.DB.prepare('INSERT INTO game_saves (user_id, game, data, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(user_id, game) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at').bind(me.id, body.game, body.data, Date.now()).run();
+    return json({ ok: true });
+  }
+  if (path === '/api/game/finish' && method === 'POST') {
+    const game = body.game;
+    if (!isGame(game)) return fail('Unknown game');
+    const score = Math.floor(Number(body.score));
+    const ms = Number(body.ms);
+    if (!Number.isFinite(score) || score < 0 || score > GAMES[game].maxScore) return fail('That score does not look right.');
+    if (!Number.isFinite(ms) || ms < GAMES[game].minMs) return fail('That run was too quick to count.');
+    if (!(await allow(env, 'gfin:' + me.id, 80, 3600))) return fail('Take a little break, then play again!', 429);
+    if (game === 'daily' && !(await allow(env, 'gdaily:' + me.id, 1, 86400))) return json({ reward: null, profile: ownProfile(me), already: true });
+    const day = dayKey();
+    // golf: the leaderboard score is total stars, the reward depends on the stars of this course
+    const r = gameReward(game, game === 'golf' ? Math.max(0, Math.min(3, Math.floor(Number(body.stars) || 0))) : score);
+    const out = grantXp(me, r.xp, r.coins);
+    await saveUser(env, before, me);
+    await env.DB.prepare(
+      `INSERT INTO scores (game, user_id, best, plays, day, day_best, updated_at) VALUES (?, ?, ?, 1, ?, ?, ?)
+       ON CONFLICT(game, user_id) DO UPDATE SET best = MAX(best, excluded.best), plays = plays + 1,
+         day_best = CASE WHEN day = excluded.day THEN MAX(day_best, excluded.day_best) ELSE excluded.day_best END,
+         day = excluded.day, updated_at = excluded.updated_at`
+    ).bind(game, me.id, score, day, score, Date.now()).run();
+    const row = await env.DB.prepare('SELECT best, day_best FROM scores WHERE game = ? AND user_id = ?').bind(game, me.id).first();
+    return json({ reward: out, profile: ownProfile(me), best: row.best, todayBest: row.day_best, newBest: score >= row.best && score > 0 });
+  }
+  if (path === '/api/quest') {
+    // "Play 2 different Bonk games today": checked against today's recorded runs, claimed once a day.
+    const day = dayKey();
+    const n = (await env.DB.prepare('SELECT COUNT(*) AS n FROM scores WHERE user_id = ? AND day = ?').bind(me.id, day).first()).n;
+    const claimed = (await env.DB.prepare("SELECT data FROM game_saves WHERE user_id = ? AND game = 'quest'").bind(me.id).first())?.data === day;
+    if (method === 'GET') return json({ played: n, need: 2, claimed });
+    if (claimed) return fail('Already claimed today');
+    if (n < 2) return fail('Play 2 different games first!');
+    me.coins += 50;
+    me.capsules += 1;
+    await saveUser(env, before, me);
+    await env.DB.prepare("INSERT INTO game_saves (user_id, game, data, updated_at) VALUES (?, 'quest', ?, ?) ON CONFLICT(user_id, game) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at").bind(me.id, day, Date.now()).run();
+    return json({ coins: 50, capsule: true, profile: ownProfile(me) });
+  }
+  return fail('Not found', 404);
 }
 
 async function addFriend(env, me, other) {

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>My Profile - Bonk Games</title>
+  <meta name="description" content="Your Bonk Games profile: pick your creature, colour, hat and name, open capsules, see your stats and save your progress.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0e1a2b">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+<body class="bp">
+  <div id="shell">
+    <aside class="rail" aria-label="Advertisement"><div class="ad" data-slot="rail"><span>Advertisement</span></div></aside>
+    <main id="stage" class="profpage">
+      <header class="profbar">
+        <a class="hud-btn" href="/games/" aria-label="All games"></a>
+        <h1>My profile</h1>
+      </header>
+      <div class="profgrid">
+        <section class="panel prof-me" aria-label="My creature">
+          <canvas id="pvCanvas" width="360" height="360" aria-label="Your creature"></canvas>
+          <h2 id="pName"></h2>
+          <p class="plvl"><b id="pLvl"></b><span class="xpbar"><i id="pXp"></i></span><small id="pNext"></small></p>
+          <div class="pchips"><span class="chip" id="pCoins"></span><span class="chip" id="pStreak"></span><span class="chip" id="pCode"></span></div>
+          <div class="pgift" id="pGift" hidden>
+            <span>Daily gift is ready!</span><button class="btn small" id="btnGift" type="button">Claim</button>
+          </div>
+          <div class="pcaps" id="pCaps" hidden>
+            <span id="pCapsText"></span><button class="btn small" id="btnCaps" type="button">Open a capsule</button>
+          </div>
+        </section>
+
+        <div class="prof-col">
+          <section class="panel" aria-label="Name">
+            <h3>Name</h3>
+            <form id="nameForm" class="nameform">
+              <input id="nameInput" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Pick a name" aria-label="Display name">
+              <button class="btn small" type="submit">Save</button>
+              <button class="btn alt small" id="btnReroll" type="button">Random</button>
+            </form>
+            <p class="hint">3 to 14 letters or numbers. Please do not use your real full name.</p>
+          </section>
+
+          <section class="panel" aria-label="Look">
+            <h3>Look</h3>
+            <div class="ptabs" role="tablist" id="lookTabs">
+              <button class="ptab on" data-t="kind" type="button" role="tab">Creature</button>
+              <button class="ptab" data-t="col" type="button" role="tab">Colour</button>
+              <button class="ptab" data-t="hat" type="button" role="tab">Hat</button>
+              <button class="ptab" data-t="trail" type="button" role="tab">Trail</button>
+            </div>
+            <div class="pitems" id="items"></div>
+            <p class="hint" id="itemHint">Win matches and level up to earn capsules with new looks.</p>
+          </section>
+
+          <section class="panel" aria-label="Stats">
+            <h3>Stats</h3>
+            <div class="pstats" id="pStats"></div>
+            <h3 class="sub-h">Best scores</h3>
+            <div class="pstats" id="pBests"></div>
+          </section>
+
+          <section class="panel" aria-label="Settings">
+            <h3>Settings</h3>
+            <div class="setrow"><span>Sound effects</span><button class="switch" id="swSfx" type="button" role="switch" aria-label="Sound effects"></button></div>
+            <div class="setrow"><span>Music</span><button class="switch" id="swMusic" type="button" role="switch" aria-label="Music"></button></div>
+            <div class="setrow"><span>Bot level</span>
+              <div class="modes" id="diffTabs"><button class="mode" data-d="easy" type="button">Easy</button><button class="mode" data-d="medium" type="button">Medium</button><button class="mode" data-d="hard" type="button">Hard</button></div>
+            </div>
+          </section>
+
+          <section class="panel" aria-label="Account">
+            <h3>Save my progress</h3>
+            <div id="saveBox" class="save-box"></div>
+          </section>
+        </div>
+      </div>
+      <div id="toasts"></div>
+      <div id="reveal" class="reveal" hidden></div>
+    </main>
+  </div>
+  <div class="ad banner" data-slot="banner"><span>Advertisement</span></div>
+  <script type="module" src="/src/profile/main.js"></script>
+</body>
+</html>
