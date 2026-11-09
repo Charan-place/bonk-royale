@@ -237,3 +237,19 @@ html:has(.doc), body:has(.doc) { overflow: auto; }
 .stat b { display: block; font-size: 22px; line-height: 1.1; }
 .stat span { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
 .save-box { background: #fff4c2; border: 3px dashed var(--ink); border-radius: 16px; padding: 8px 12px; margin-bottom: 10px; font-weight: 700; font-size: 15px; }
+
+.nameform { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin-top: 10px; font-weight: 800; }
+.nameform input { min-width: 0; padding: 8px 12px; font: inherit; font-weight: 700; border: 3px solid var(--ink); border-radius: 14px; background: #fff; color: var(--ink); }
+.nameform input:focus-visible { outline: 3px solid var(--grape); outline-offset: 2px; }
+.namerule { margin: 4px 0 0; font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+
+/* how to play */
+.howto { max-height: 94vh; overflow-y: auto; padding-top: 10px; padding-bottom: 12px; }
+.howto h2 { margin: 0; font-size: 28px; }
+.steps { list-style: none; margin: 6px 0 8px; padding: 0; display: grid; gap: 6px; text-align: left; }
+.steps li { display: grid; grid-template-columns: 46px 1fr; align-items: center; gap: 10px; background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 6px 10px; }
+.steps i { font-style: normal; font-size: 32px; text-align: center; }
+.steps p { margin: 0; font-size: 15px; line-height: 1.2; }
+.steps p b { color: var(--grape); }
+.whoyou { margin: 0 0 12px; font-weight: 700; }
+.youchip { display: inline-block; padding: 0 10px; background: #6a2cff; color: #fff; border: 3px solid #fff; border-radius: 12px; outline: 2px solid var(--ink); }

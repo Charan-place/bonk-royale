@@ -125,6 +125,9 @@ export function nameOf(a, b, n) {
   return n > 0 ? `${x} ${y} ${n}` : `${x} ${y}`;
 }
 
+/** What other players see: the chosen name if there is one, otherwise the generated one. */
+export const displayName = (card) => (card.alias ? card.alias : nameOf(...card.name));
+
 export function randomName(rng = Math.random) {
   return [Math.floor(rng() * ADJ.length), Math.floor(rng() * ANIMAL.length), Math.floor(rng() * 90) + 10];
 }

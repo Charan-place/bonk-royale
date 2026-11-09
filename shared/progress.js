@@ -4,6 +4,7 @@ import { STARTER, rollCapsule, DUPLICATE_COINS, levelOf, matchRewards, randomNam
 
 export const newProfile = () => ({
   name: randomName(),
+  alias: '',
   kind: 0,
   col: 0,
   hat: 0,

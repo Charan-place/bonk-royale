@@ -3,13 +3,43 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>Bonk Royale - Free Online Party Brawler</title>
-  <meta name="description" content="Flick your cute creature, bonk your friends off a crumbling candy island, and be the last one standing. Free, instant, no download.">
+  <title>Bonk Royale - Free Online Multiplayer Party Game for Kids and Adults</title>
+  <meta name="description" content="Play Bonk Royale free in your browser: flick cute creatures, bonk friends off a crumbling candy island and be the last one standing. Multiplayer, no download, easy for kids and fun for adults.">
+  <meta name="keywords" content="free online games, multiplayer party game, io game, games for kids, browser game, play with friends, no download">
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#8c5cff">
+  <link rel="canonical" href="https://playbonkroyale.com/">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <meta property="og:title" content="Bonk Royale - Free Online Party Brawler">
-  <meta property="og:description" content="Flick. Bonk. Win. Play with friends in seconds.">
+  <meta property="og:site_name" content="Bonk Royale">
+  <meta property="og:title" content="Bonk Royale - Free Online Multiplayer Party Game">
+  <meta property="og:description" content="Flick. Bonk. Win. Play with friends in seconds. Free, no download, for all ages.">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://playbonkroyale.com/">
+  <meta property="og:image" content="https://playbonkroyale.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Bonk Royale: cute creatures on a colourful candy island">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Bonk Royale - Free Online Multiplayer Party Game">
+  <meta name="twitter:description" content="Flick. Bonk. Win. Play with friends in seconds.">
+  <meta name="twitter:image" content="https://playbonkroyale.com/og.png">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Bonk Royale",
+    "url": "https://playbonkroyale.com/",
+    "description": "A free multiplayer party brawler. Flick cute creatures, bonk rivals off a crumbling candy island and be the last one standing.",
+    "genre": ["Party game", "Battle royale", "Multiplayer"],
+    "applicationCategory": "Game",
+    "operatingSystem": "Any (web browser)",
+    "playMode": "MultiPlayer",
+    "gamePlatform": "Web browser",
+    "inLanguage": "en",
+    "audience": { "@type": "PeopleAudience", "suggestedMinAge": 5 },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" }
+  }
+  </script>
 </head>
 <body data-screen="home">
   <div id="shell">
@@ -46,6 +76,7 @@
           </button>
           <div class="wallet">
             <span class="chip" title="Coins">&#x1FA99; <b id="coins">0</b></span>
+            <button class="hud-btn" id="btnHowto" type="button" aria-label="How to play">&#x2753;</button>
             <button class="hud-btn" id="btnSettings" type="button" aria-label="Settings">&#x2699;&#xFE0F;</button>
           </div>
         </header>
@@ -71,7 +102,7 @@
             <button class="btn alt" id="btnGift" type="button">&#x1F381; Gift<i class="dot" id="giftDot" hidden></i></button>
           </div>
           <p class="status" id="homeStatus" aria-live="polite"></p>
-          <nav class="foot"><a href="/about.html">About</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Contact</a></nav>
+          <nav class="foot"><a href="/how-to-play.html">How to play</a><a href="/about.html">About</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/contact.html">Contact</a></nav>
         </div>
       </section>
 
@@ -106,7 +137,28 @@
         <div class="sheet-head"><b>Your style</b><button class="hud-btn" data-close type="button" aria-label="Close">&#x2715;</button></div>
         <div class="tabs" role="tablist" id="styleTabs"></div>
         <div class="grid" id="styleGrid"></div>
-        <div class="namebar"><b id="styleName"></b><button class="btn small alt" id="btnDice" type="button">&#x1F3B2; New name</button></div>
+        <div class="namebar"><b id="styleName"></b><button class="btn small alt" id="btnDice" type="button">&#x1F3B2; Random name</button></div>
+        <form class="nameform" id="nameForm" autocomplete="off">
+          <label for="nameInput">Your name</label>
+          <input id="nameInput" type="text" inputmode="text" autocapitalize="words" spellcheck="false" placeholder="Pick a name" aria-describedby="nameRule">
+          <button class="btn small" type="submit">Save</button>
+        </form>
+        <p class="namerule" id="nameRule">3 to 14 letters, numbers or spaces. Keep it friendly!</p>
+      </section>
+
+      <section id="howto" class="screen overlay" hidden role="dialog" aria-modal="true" aria-labelledby="howtoTitle">
+        <div class="card howto">
+          <h2 id="howtoTitle">How to play</h2>
+          <ol class="steps">
+            <li><i aria-hidden="true">&#x1F3AF;</i><p><b>Aim and flick.</b> <span id="howtoControls"></span></p></li>
+            <li><i aria-hidden="true">&#x1F4A5;</i><p><b>Bonk your rivals</b> off the island. Crash into them hard!</p></li>
+            <li><i aria-hidden="true">&#x1F36C;</i><p><b>The floor crumbles</b> from the edge. Tiles that flash will fall, so move toward the middle.</p></li>
+            <li><i aria-hidden="true">&#x2764;&#xFE0F;</i><p><b>You have 3 hearts.</b> Fall off and you lose one, then come back with a shield. Last one standing wins!</p></li>
+            <li><i aria-hidden="true">&#x1F48E;</i><p><b>Grab gems and glowing orbs</b> for coins and power-ups.</p></li>
+          </ol>
+          <p class="whoyou">Look for the <b class="youchip">YOU</b> tag and the purple ring. That is your creature.</p>
+          <button class="btn play" id="btnHowtoGo" type="button">Got it!</button>
+        </div>
       </section>
 
       <section id="progressSheet" class="sheet" hidden>
@@ -179,7 +231,13 @@
     <aside class="rail" aria-label="Advertisement"><div class="ad" data-slot="rail"><span>Advertisement</span></div></aside>
   </div>
   <div class="ad banner" data-slot="banner"><span>Advertisement</span></div>
-  <noscript><p style="padding:2rem">Bonk Royale needs JavaScript.</p></noscript>
+  <noscript>
+    <main style="padding:2rem;max-width:42rem;font-family:system-ui,sans-serif">
+      <h1>Bonk Royale: free online multiplayer party game</h1>
+      <p>Flick your cute creature, bonk your friends off a crumbling candy island and be the last one standing. Free to play in your browser, no download, for kids and adults. Please turn on JavaScript to play.</p>
+      <p><a href="/how-to-play.html">How to play</a> &middot; <a href="/about.html">About</a></p>
+    </main>
+  </noscript>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

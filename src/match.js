@@ -3,7 +3,7 @@
 import { C, MODES, createMatch, stepMatch, flick, emote, drainEvents, results } from '../shared/sim.js';
 import { applyMatch } from '../shared/progress.js';
 import { DIFFS, diffOf } from '../shared/difficulty.js';
-import { nameOf, randomName } from '../shared/cosmetics.js';
+import { nameOf, randomName, displayName } from '../shared/cosmetics.js';
 import { loadUser, saveUser, card, ownProfile, recordMet } from './db.js';
 
 const LOBBY_QUICK_MS = 8000;
@@ -207,7 +207,8 @@ export class MatchRoom {
       c.rematch = false;
       let team = id;
       if (mode === 'team') team = this.cfg.private ? this.cfg.expected.get(c.uid) || (i % 2) + 1 : (i % 2) + 1;
-      const name = nameOf(...c.card.name);
+      let name = displayName(c.card);
+      for (let n = 2; used.has(name); n++) name = `${displayName(c.card)} ${n}`; // two players, same name
       used.add(name);
       list.push({ id, pid: c.uid, name, kind: c.card.kind, col: c.card.col, hat: c.card.hat, trail: c.card.trail, team, bot: false });
     });

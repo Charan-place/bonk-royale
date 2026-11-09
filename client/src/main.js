@@ -3,7 +3,8 @@ import '@fontsource/baloo-2/800.css';
 import './ui.css';
 import { C, MODES, pointToHex } from '../../shared/sim.js';
 import { DIFFS, diffOf } from '../../shared/difficulty.js';
-import { KINDS, COLORS, HATS, TRAILS, EMOTES, RARITY, nameOf, randomName, levelProgress } from '../../shared/cosmetics.js';
+import { KINDS, COLORS, HATS, TRAILS, EMOTES, RARITY, nameOf, randomName, displayName, levelProgress } from '../../shared/cosmetics.js';
+import { checkName, NAME_MAX } from '../../shared/names.js';
 import { Stage } from './scene.js';
 import { FlickInput, rangeOf } from './input.js';
 import { LocalSession } from './session.js';
@@ -25,7 +26,7 @@ try {
 const MODE_LABEL = { ffa: 'Free for all', duel: '1 vs 1', team: 'Teams' };
 
 const el = {
-  body: document.body, hud: $('hud'), home: $('home'), results: $('results'), lobby: $('lobby'), party: $('party'),
+  howto: $('howto'), body: document.body, hud: $('hud'), home: $('home'), results: $('results'), lobby: $('lobby'), party: $('party'),
   hearts: $('hudHearts'), gems: $('hudGems'), alive: $('hudAlive'), time: $('hudTime'),
   feed: $('feed'), callouts: $('callouts'), count: $('count'), hint: $('hint'),
   outBar: $('outBar'), outPlace: $('outPlace'), bubbles: $('bubbles'), wheel: $('emoteWheel'),
@@ -59,7 +60,7 @@ const bubbles = [];
 // ------------------------------------------------------------------ helpers
 const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const rarityColor = (r) => (RARITY[r] || RARITY.common).color;
-const cardName = (c) => nameOf(...c.name);
+const cardName = displayName;
 
 function toast(text, ms = 2600, actions = null) {
   const t = document.createElement('div');
@@ -852,6 +853,7 @@ function renderStyle() {
     grid.append(b);
   });
   $('styleName').textContent = cardName(store.data);
+  $('nameInput').value = store.data.alias || '';
 }
 
 // ------------------------------------------------------------------ input
@@ -1016,8 +1018,45 @@ async function maybeAd() {
   }
 }
 
+let howtoSeen = false;
+try {
+  howtoSeen = localStorage.getItem('bonk_howto') === '1';
+} catch {
+  /* storage blocked: show the guide each visit */
+}
+let howtoThen = null;
+const CONTROLS = {
+  touch: 'Drag back anywhere on the screen like a slingshot, then let go to launch your creature the other way.',
+  mouse: 'Point the mouse where you want to go. Click for a quick bonk, or hold the button to charge more power, then let go. Arrow keys or A and D also turn the aim, and Space flicks.',
+};
+function showHowto(then = null) {
+  howtoThen = then;
+  $('howtoControls').textContent = CONTROLS[input.device === 'touch' ? 'touch' : 'mouse'];
+  $('btnHowtoGo').textContent = then ? "Got it, let's play!" : 'Got it!';
+  el.howto.hidden = false;
+  $('btnHowtoGo').focus();
+}
+$('btnHowtoGo').addEventListener('click', () => {
+  sfx.click();
+  el.howto.hidden = true;
+  howtoSeen = true;
+  try {
+    localStorage.setItem('bonk_howto', '1');
+  } catch {
+    /* best effort */
+  }
+  const next = howtoThen;
+  howtoThen = null;
+  if (next) next();
+});
+$('btnHowto').addEventListener('click', () => {
+  sfx.click();
+  showHowto();
+});
+
 async function play() {
   sfx.unlock();
+  if (!howtoSeen) return showHowto(play);
   await maybeAd();
   if (!api.remote) return startLocal();
   startOnline({ mode });
@@ -1119,6 +1158,21 @@ $('btnProgStyle').addEventListener('click', () => {
   $('btnStyle').click();
 });
 for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => (b.closest('.sheet').hidden = true));
+$('nameInput').maxLength = NAME_MAX;
+$('nameForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  sfx.click();
+  const r = checkName($('nameInput').value);
+  if (!r.ok) return toast(r.error);
+  try {
+    await store.setName(r.name);
+    toast(`Hi ${r.name}! \u{1F44B}`);
+  } catch (err) {
+    toast(err.message);
+  }
+  renderStyle();
+  renderHome();
+});
 $('btnDice').addEventListener('click', async () => {
   sfx.click();
   try {

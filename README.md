@@ -13,7 +13,7 @@ Flick-sumo party brawler for all ages. Drag back, let go, bonk rivals off a crum
 | Match room, party lobby, presence hub, rate limiter | `src/match.js`, `src/party.js`, `src/hub.js` |
 | Database schema | `migrations/0001_init.sql` |
 
-Players are anonymous: a random key on their device plus a friend code (`BONK-XXXXX`). There is no free-text name and no chat, so nothing needs moderating and children cannot enter personal data. Every reward, capsule roll and unlock is computed on the server.
+Players are anonymous: a random key on their device plus a friend code (`BONK-XXXXX`). There is no chat. Display names are optional and limited to letters, numbers and spaces with a profanity filter (`shared/names.js`, enforced on the server), and names appear only on in-game labels. Every reward, capsule roll and unlock is computed on the server.
 
 ## Run locally
 ```bash

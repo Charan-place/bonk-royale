@@ -113,6 +113,7 @@ function buildHat(idx) {
 }
 
 const labelCache = new Map();
+const ME_COLOR = '#6a2cff';
 let youTex = null;
 function youTexture() {
   if (youTex) return youTex;
@@ -121,8 +122,8 @@ function youTexture() {
   c.height = 110;
   const x = c.getContext('2d');
   x.lineJoin = 'round';
-  x.fillStyle = '#ffe14d';
-  x.strokeStyle = 'rgba(40,30,70,0.95)';
+  x.fillStyle = ME_COLOR;
+  x.strokeStyle = '#ffffff';
   x.lineWidth = 12;
   x.beginPath();
   x.roundRect(14, 10, 228, 90, 40);
@@ -131,7 +132,10 @@ function youTexture() {
   x.textAlign = 'center';
   x.textBaseline = 'middle';
   x.font = '800 66px "Baloo 2", system-ui, sans-serif';
-  x.fillStyle = '#2b2150';
+  x.strokeStyle = 'rgba(40,30,70,0.9)';
+  x.lineWidth = 3;
+  x.strokeText('YOU', 128, 58);
+  x.fillStyle = '#ffffff';
   x.fillText('YOU', 128, 58);
   youTex = new THREE.CanvasTexture(c);
   youTex.colorSpace = THREE.SRGBColorSpace;
@@ -190,8 +194,8 @@ export function createPuck(info, isMe = false) {
   wob.add(body);
 
   if (isMe) {
-    // gold outline hull: only my creature has it, so I can find myself in a crowd
-    const hull = mesh(sphereGeo, new THREE.MeshBasicMaterial({ color: '#ffe14d', side: THREE.BackSide }), [1.12, 1.04, 1.12], [0, 0, 0]);
+    // violet outline hull (the floor is pink, blue and yellow, so violet never blends in): only my creature has it, so I can find myself in a crowd
+    const hull = mesh(sphereGeo, new THREE.MeshBasicMaterial({ color: ME_COLOR, side: THREE.BackSide }), [1.12, 1.04, 1.12], [0, 0, 0]);
     hull.castShadow = false;
     hull.receiveShadow = false;
     wob.add(hull);
@@ -268,9 +272,13 @@ export function createPuck(info, isMe = false) {
   let halo = null;
   let youTag = null;
   if (isMe) {
-    const haloGeo = new THREE.RingGeometry(1.5, 2.1, 48, 1);
-    haloGeo.rotateX(-Math.PI / 2);
-    halo = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({ color: '#ffe14d', transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+    // violet ring with a white rim on each side: readable on pink, blue and yellow tiles alike
+    halo = new THREE.Group();
+    for (const [a, b, color] of [[1.42, 1.5, '#ffffff'], [1.5, 2.0, ME_COLOR], [2.0, 2.08, '#ffffff']]) {
+      const g = new THREE.RingGeometry(a, b, 56, 1);
+      g.rotateX(-Math.PI / 2);
+      halo.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1, depthWrite: false, side: THREE.DoubleSide })));
+    }
     root.add(halo);
     youTag = new THREE.Sprite(new THREE.SpriteMaterial({ map: youTexture(), depthWrite: false, depthTest: false, transparent: true }));
     youTag.renderOrder = 20;
@@ -401,7 +409,7 @@ export function updatePuck(o, v, dt, now, ctx) {
 
   // name tag
   const hearts = v.lives;
-  const lc = v.teamColor || (o.isMe ? '#ffe14d' : '#ffffff');
+  const lc = v.teamColor || '#ffffff';
   if (hearts !== o.lastHearts || lc !== o.lastLabelColor) {
     o.lastHearts = hearts;
     o.lastLabelColor = lc;
@@ -419,7 +427,6 @@ export function updatePuck(o, v, dt, now, ctx) {
     o.halo.visible = v.state === 'live';
     o.halo.position.set(0, 4 - y, 0);
     o.halo.scale.setScalar(r * 1.05 * pulse);
-    o.halo.material.opacity = 0.55 + Math.sin(now / 170) * 0.25;
     o.youTag.visible = v.state === 'live';
     o.youTag.position.set(0, r * 1.6 + 215 * ctx.ui + Math.sin(now / 200) * 12, 0);
     o.youTag.scale.set(150 * ctx.ui, 64 * ctx.ui, 1);
