@@ -2,6 +2,7 @@ import '@fontsource/baloo-2/700.css';
 import '@fontsource/baloo-2/800.css';
 import './ui.css';
 import { C, MODES, pointToHex } from '../../shared/sim.js';
+import { DIFFS, diffOf } from '../../shared/difficulty.js';
 import { KINDS, COLORS, HATS, TRAILS, EMOTES, RARITY, nameOf, randomName, levelProgress } from '../../shared/cosmetics.js';
 import { Stage } from './scene.js';
 import { FlickInput, rangeOf } from './input.js';
@@ -15,6 +16,12 @@ const $ = (id) => document.getElementById(id);
 const KIND_ICONS = ['\u{1F431}', '\u{1F430}', '\u{1F43B}', '\u{1F438}', '\u{1F996}', '\u{1F916}', '\u{1F47D}', '\u{1F427}'];
 const HAT_ICONS = ['\u{1F6AB}', '\u{1F389}', '\u{1F681}', '\u{1F3A9}', '\u{1F920}', '\u{1F9D9}', '\u{1F451}', '\u{1F607}'];
 const TRAIL_ICONS = ['✨', '\u{1F496}', '⭐', '\u{1FAE7}', '\u{1F308}'];
+let diff = 'easy';
+try {
+  diff = diffOf(localStorage.getItem('bonk_diff'));
+} catch {
+  /* storage can be blocked: stay on the default */
+}
 const MODE_LABEL = { ffa: 'Free for all', duel: '1 vs 1', team: 'Teams' };
 
 const el = {
@@ -23,7 +30,7 @@ const el = {
   feed: $('feed'), callouts: $('callouts'), count: $('count'), hint: $('hint'),
   outBar: $('outBar'), outPlace: $('outPlace'), bubbles: $('bubbles'), wheel: $('emoteWheel'),
   meName: $('meName'), meLvl: $('meLvl'), meXp: $('meXp'), meAvatar: $('meAvatar'), coins: $('coins'),
-  status: $('homeStatus'), toasts: $('toasts'),
+  status: $('homeStatus'), toasts: $('toasts'), power: $('power'), powerFill: $('powerFill'),
 };
 
 const stage = new Stage($('gl'));
@@ -252,6 +259,7 @@ function renderParty() {
   $('partyNote').textContent = isLeader
     ? { ffa: 'Everyone brawls. Bots fill empty spots!', duel: 'A friendly 1 vs 1 duel. Best player wins!', team: 'Two teams. Work together!' }[s.mode]
     : `${leader ? cardName(leader) : 'The leader'} picks the game. Tap ready!`;
+  if (s.diff && DIFFS[s.diff]) $('partyNote').textContent += ` Bots: ${DIFFS[s.diff].label}.`;
 }
 
 async function ensureParty(modeWanted) {
@@ -263,6 +271,7 @@ async function ensureParty(modeWanted) {
   partyLink.join('NEW');
   const st = await Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000))]);
   if (modeWanted && modeWanted !== 'ffa') partyLink.send({ t: 'mode', v: modeWanted });
+  partyLink.send({ t: 'diff', v: diff });
   return st.code;
 }
 
@@ -434,6 +443,7 @@ function beginMatchView(m) {
   stage.camPos.set(0, 1500, 1100);
   mode = m;
   setScreen('match');
+  showHint(input.device);
   el.hint.hidden = store.tutorial;
   music.setIntensity(0.3);
 }
@@ -443,12 +453,13 @@ function buildLocalPlayers(m) {
   const total = m === 'duel' ? 2 : 8;
   const list = [{ ...myCosmetics(), id: 1, team: 1, bot: false }];
   const used = new Set([list[0].name]);
+  const colours = COLORS.map((_, i) => i).filter((i) => i !== list[0].col); // nobody copies the player's colour
   for (let i = 0; i < total - 1; i++) {
     let name;
     do name = nameOf(...randomName());
     while (used.has(name));
     used.add(name);
-    list.push({ id: i + 2, name, kind: Math.floor(Math.random() * KINDS.length), col: Math.floor(Math.random() * COLORS.length), hat: Math.floor(Math.random() * HATS.length), trail: Math.floor(Math.random() * TRAILS.length), bot: true, team: i + 2 });
+    list.push({ id: i + 2, name, kind: Math.floor(Math.random() * KINDS.length), col: colours[Math.floor(Math.random() * colours.length)], hat: Math.floor(Math.random() * HATS.length), trail: Math.floor(Math.random() * TRAILS.length), bot: true, team: i + 2 });
   }
   if (m === 'team') list.forEach((p, i) => (p.team = i < 4 ? 1 : 2));
   return list;
@@ -461,7 +472,7 @@ function startLocal() {
   const players = buildLocalPlayers(mode);
   meId = 1;
   for (const p of players) names.set(p.id, p.name);
-  const difficulty = Math.min(0.72, 0.28 + store.level * 0.025);
+  const difficulty = DIFFS[diff].skill;
   beginMatchView(mode);
   session = new LocalSession({ mode, players, difficulty, meId, onEvent, onOver: finishLocal });
 }
@@ -472,7 +483,7 @@ function finishLocal() {
   const m = session.m;
   const res = m.pucks.map((p) => ({ id: p.id, place: p.place || 2, kos: p.kos, gems: p.gems, won: !!(m.winner && m.winner.ids.includes(p.id)), survived: Math.round(p.alive || m.pt) }));
   const mine = res.find((r) => r.id === meId);
-  const reward = store.applyLocalMatch({ place: mine.place, players: m.pucks.length, kos: mine.kos, gems: mine.gems, won: mine.won });
+  const reward = store.applyLocalMatch({ place: mine.place, players: m.pucks.length, kos: mine.kos, gems: mine.gems, won: mine.won, mult: DIFFS[diff].mult });
   payload = { mine, reward, players: m.pucks.length, met: [] };
   showResults();
 }
@@ -492,6 +503,7 @@ function startOnline({ mode: m, room = '' }) {
   session = new OnlineSession({
     mode: m,
     room,
+    diff,
     onEvent,
     onLobby: renderLobby,
     onStart: (s) => {
@@ -851,9 +863,42 @@ function tryFlick(a, p) {
   return session.flick(a, p);
 }
 
-new FlickInput(stageEl, {
+const nearestRivalAngle = () => {
+  if (!myInfo || !lastView) return 0;
+  let best = null;
+  let bd = Infinity;
+  for (const p of lastView.pucks) {
+    if (p.id === meId || p.state !== 'live' || p.team === myInfo.team) continue;
+    const d = Math.hypot(p.x - myInfo.x, p.y - myInfo.y);
+    if (d < bd) {
+      bd = d;
+      best = Math.atan2(p.y - myInfo.y, p.x - myInfo.x);
+    }
+  }
+  return best ?? 0;
+};
+
+const HINTS = {
+  touch: '<span class="hand">\u{1F446}</span><b>Drag back &amp; let go to flick!</b>',
+  mouse: '<span class="hand">\u{1F5B1}\uFE0F</span><b>Point with the mouse &middot; click to BONK &middot; hold for more power</b>',
+  key: '<span class="hand">\u2328\uFE0F</span><b>&larr; &rarr; to aim &middot; tap SPACE to BONK &middot; hold for more power</b>',
+};
+function showHint(device) {
+  el.hint.innerHTML = HINTS[device];
+  el.body.dataset.input = device;
+}
+
+const input = new FlickInput(stageEl, {
+  getOrigin: () => (myInfo ? stage.project(myInfo.x, myInfo.y, 40) : null),
+  cursorToWorld: (x, y) => {
+    if (!myInfo) return null;
+    const [gx, gy] = stage.unproject(x, y);
+    return [gx - myInfo.x, gy - myInfo.y];
+  },
+  getDefaultAngle: nearestRivalAngle,
+  onDevice: showHint,
   isActive: () => screen === 'match' && session && !finished && myInfo && myInfo.state === 'live' && lastView && lastView.phase !== 'over',
-  onAim: (dx, dy, power) => {
+  onAim: (dx, dy, power, preview = false) => {
     if (!power) {
       aim = { angle: aim.angle, power: 0 };
       stage.aim.visible = false;
@@ -874,7 +919,7 @@ new FlickInput(stageEl, {
       }
       if (best !== null) angle += best * 0.65;
     }
-    aim = { angle, power };
+    aim = { angle, power, preview };
   },
   onFlick: (dx, dy, power) => {
     if (!session) return;
@@ -932,6 +977,9 @@ function loop(now) {
     session.update(dt);
     view = session.view(now);
   }
+  input.update(dt);
+  el.power.hidden = !(input.live > 0);
+  if (input.live > 0) el.powerFill.style.width = Math.round(input.live * 100) + '%';
   if (view) {
     lastView = view;
     myInfo = view.pucks.find((p) => p.id === meId) || null;
@@ -951,7 +999,7 @@ function loop(now) {
       if (!t || t.st === 'warn' || t.st === 'shake' || ring >= view.collapsedRing) danger = 1;
     }
     const trails = new Map(view.pucks.map((p) => [p.id, p.trail]));
-    stage.frame(view, dt, now, { meId, charging: aim.power > 0.2, showRings: false, danger, trails });
+    stage.frame(view, dt, now, { meId, charging: aim.power > 0.2 && !aim.preview, showRings: false, danger, trails });
     updateHud(view);
     updateBubbles(view, now);
   } else {
@@ -990,6 +1038,26 @@ for (const b of document.querySelectorAll('.mode:not([data-pmode])')) {
     }
   });
 }
+function showDiff() {
+  for (const o of document.querySelectorAll('[data-diff]')) {
+    o.classList.toggle('on', o.dataset.diff === diff);
+    o.setAttribute('aria-checked', String(o.dataset.diff === diff));
+  }
+}
+showDiff();
+for (const b of document.querySelectorAll('[data-diff]')) {
+  b.addEventListener('click', () => {
+    sfx.click();
+    diff = diffOf(b.dataset.diff);
+    try {
+      localStorage.setItem('bonk_diff', diff);
+    } catch {
+      /* best effort */
+    }
+    showDiff();
+    if (partyLink.active && partyState && partyState.leader === store.data.id) partyLink.send({ t: 'diff', v: diff });
+  });
+}
 for (const b of document.querySelectorAll('[data-pmode]')) {
   b.addEventListener('click', () => {
     sfx.click();
@@ -1002,7 +1070,54 @@ $('btnStyle').addEventListener('click', () => {
   $('styleSheet').hidden = false;
   $('friendsSheet').hidden = true;
 });
-$('meCard').addEventListener('click', () => $('btnStyle').click());
+function renderProgress() {
+  const d = store.data;
+  const p = levelProgress(d.xp);
+  const total = KINDS.length + COLORS.length + HATS.length + TRAILS.length;
+  const av = $('progAvatar');
+  av.textContent = KIND_ICONS[d.kind];
+  av.style.background = COLORS[d.col].hex;
+  $('progName').textContent = cardName(d);
+  $('progLvl').textContent = `Level ${p.lv}`;
+  $('progXp').style.width = `${Math.round(p.f * 100)}%`;
+  $('progNext').textContent = `${Math.max(0, p.hi - d.xp)} XP to level ${p.lv + 1}`;
+  const rate = d.matches ? Math.round((d.wins / d.matches) * 100) : 0;
+  const stats = [
+    [d.matches, 'Matches'],
+    [d.wins, 'Wins'],
+    [`${rate}%`, 'Win rate'],
+    [d.kos, 'Bonks'],
+    [`${d.streak || 0} \u{1F525}`, 'Day streak'],
+    [`${d.owned.length}/${total}`, 'Collected'],
+  ];
+  $('progStats').replaceChildren(
+    ...stats.map(([v, l]) => {
+      const c = document.createElement('div');
+      c.className = 'stat';
+      const b = document.createElement('b');
+      b.textContent = v;
+      const sp = document.createElement('span');
+      sp.textContent = l;
+      c.append(b, sp);
+      return c;
+    })
+  );
+  $('saveBox').textContent = api.remote
+    ? 'Your progress is saved to this device. Sign in to keep it safe and play anywhere!'
+    : 'Offline practice: progress stays on this device.';
+}
+function openProgress() {
+  sfx.click();
+  renderProgress();
+  $('progressSheet').hidden = false;
+  $('styleSheet').hidden = true;
+  $('friendsSheet').hidden = true;
+}
+$('meCard').addEventListener('click', openProgress);
+$('btnProgStyle').addEventListener('click', () => {
+  $('progressSheet').hidden = true;
+  $('btnStyle').click();
+});
 for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => (b.closest('.sheet').hidden = true));
 $('btnDice').addEventListener('click', async () => {
   sfx.click();

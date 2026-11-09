@@ -172,7 +172,7 @@ export class PartyLink {
 
 /** Mirrors a server-run match: interpolates snapshots and relays events. */
 export class OnlineSession {
-  constructor({ mode, room, onEvent, onLobby, onStart, onResults, onRematch, onClosed }) {
+  constructor({ mode, room, diff = 'easy', onEvent, onLobby, onStart, onResults, onRematch, onClosed }) {
     this.kind = 'online';
     this.mode = mode;
     this.h = { onEvent, onLobby, onStart, onResults, onRematch, onClosed };
@@ -182,7 +182,7 @@ export class OnlineSession {
     this.layoutN = 5;
     this.opened = false;
     this.ended = false;
-    const q = room ? `room=${encodeURIComponent(room)}&mode=${mode}` : `mode=${mode}`;
+    const q = (room ? `room=${encodeURIComponent(room)}&mode=${mode}` : `mode=${mode}`) + `&diff=${diff}`;
     this.ws = openSocket(`/ws/match?${q}`, {
       onOpen: () => (this.opened = true),
       onMessage: (m) => this.onMessage(m),

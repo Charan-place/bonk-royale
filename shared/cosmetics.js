@@ -148,10 +148,10 @@ export function levelProgress(xp) {
 }
 
 /** Rewards from a finished match. Pure so the server computes it, never the client. */
-export function matchRewards({ place, players, kos, gems, won }) {
+export function matchRewards({ place, players, kos, gems, won, mult = 1 }) {
   const xp = 20 + Math.max(0, players - place) * 6 + kos * 15 + gems * 2 + (won ? 40 : 0);
   const coins = 5 + gems * 2 + kos * 4 + (won ? 30 : place <= 3 ? 10 : 0);
-  return { xp, coins };
+  return { xp: Math.round(xp * mult), coins: Math.round(coins * mult) };
 }
 
 export const TEAM_COLORS = ['#ff5a7a', '#4fc3ff', '#ffd23f', '#8be04e'];
