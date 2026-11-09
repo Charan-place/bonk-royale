@@ -149,11 +149,16 @@
       <section id="howto" class="screen overlay" hidden role="dialog" aria-modal="true" aria-labelledby="howtoTitle">
         <div class="card howto">
           <h2 id="howtoTitle">How to play</h2>
-          <div class="demo" id="demo" data-dev="touch" role="img" aria-label="Animation: a player drags back and flicks their creature into a rival, who flies off the island. The outer tiles then crumble and the player wins.">
+          <div class="demo" id="demo" data-dev="touch" role="img" aria-label="Three step animation. One: aim and flick your creature. Two: crash into rivals to knock them off the island. Three: stay on the tiles as the edge crumbles, and be the last one standing.">
             <svg viewBox="0 0 320 200" aria-hidden="true"><g class="scene" id="demoScene"></g></svg>
-            <span class="demo-cap" id="demoCap"></span>
+            <i class="flash" aria-hidden="true"></i>
           </div>
-          <p class="howtext">Aim and flick your creature to bonk rivals off the island. Stay on the tiles, grab gems and be the last one standing!</p>
+          <div class="demo-steps" aria-hidden="true">
+            <div class="dstep s1"><b>1. Aim &amp; flick</b><span id="demoCap"></span></div>
+            <div class="dstep s2"><b>2. Bonk them off!</b><span>Crash into rivals to knock them off the island.</span></div>
+            <div class="dstep s3"><b>3. Stay on the tiles</b><span>The edge crumbles. Last one standing wins!</span></div>
+          </div>
+          <div class="demo-dots" aria-hidden="true"><i class="d1"></i><i class="d2"></i><i class="d3"></i></div>
           <button class="btn play" id="btnHowtoGo" type="button">Got it!</button>
         </div>
       </section>

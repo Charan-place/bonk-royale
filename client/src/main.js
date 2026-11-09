@@ -1025,7 +1025,7 @@ try {
   /* storage blocked: show the guide each visit */
 }
 let howtoThen = null;
-const DEMO_CAPS = { touch: 'Drag back, then let go', mouse: 'Point, click, let go' };
+const DEMO_CAPS = { touch: 'Drag back anywhere, then let go!', mouse: 'Point with the mouse, click, then let go!' };
 let demoBuilt = false;
 function buildDemo() {
   if (demoBuilt) return;
