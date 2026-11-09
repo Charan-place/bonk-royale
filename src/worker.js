@@ -4,6 +4,7 @@
 import { handleApi } from './api.js';
 import { loadByToken } from './db.js';
 import { allow } from './hub.js';
+import { diffOf } from '../shared/difficulty.js';
 
 export { MatchRoom } from './match.js';
 export { Party } from './party.js';
@@ -65,16 +66,17 @@ async function handleSocket(request, env, url) {
   if (url.pathname === '/ws/match') {
     const mode = MODES.includes(url.searchParams.get('mode')) ? url.searchParams.get('mode') : 'ffa';
     const room = url.searchParams.get('room') || '';
+    const diff = diffOf(url.searchParams.get('diff'));
     const u = new URL(request.url);
     u.pathname = '/connect';
-    const headers = withHeaders(request, { 'X-Uid': String(user.id), 'X-Mode': mode });
+    const headers = withHeaders(request, { 'X-Uid': String(user.id), 'X-Mode': mode, 'X-Diff': diff });
     if (room) {
       if (!/^p-[A-HJ-NP-Z2-9]{5}-[a-z0-9]{6,12}$/.test(room)) return new Response('Bad room', { status: 400 });
       return env.MATCH.get(env.MATCH.idFromName(room)).fetch(new Request(u, { headers }));
     }
     // public quick play: first room that is still gathering players
     for (let i = 1; i <= MAX_QUICK_ROOMS; i++) {
-      const stub = env.MATCH.get(env.MATCH.idFromName(`q-${mode}-${i}`));
+      const stub = env.MATCH.get(env.MATCH.idFromName(`q-${mode}-${diff}-${i}`));
       const info = await (await stub.fetch('https://room/info')).json();
       if (info.open) {
         const res = await stub.fetch(new Request(u, { headers }));
@@ -90,6 +92,7 @@ function withHeaders(request, extra) {
   const h = new Headers(request.headers);
   h.delete('X-Uid');
   h.delete('X-Mode');
+  h.delete('X-Diff');
   h.delete('X-Code');
   for (const [k, v] of Object.entries(extra)) h.set(k, v);
   return h;

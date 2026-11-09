@@ -113,6 +113,31 @@ function buildHat(idx) {
 }
 
 const labelCache = new Map();
+let youTex = null;
+function youTexture() {
+  if (youTex) return youTex;
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 110;
+  const x = c.getContext('2d');
+  x.lineJoin = 'round';
+  x.fillStyle = '#ffe14d';
+  x.strokeStyle = 'rgba(40,30,70,0.95)';
+  x.lineWidth = 12;
+  x.beginPath();
+  x.roundRect(14, 10, 228, 90, 40);
+  x.stroke();
+  x.fill();
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  x.font = '800 66px "Baloo 2", system-ui, sans-serif';
+  x.fillStyle = '#2b2150';
+  x.fillText('YOU', 128, 58);
+  youTex = new THREE.CanvasTexture(c);
+  youTex.colorSpace = THREE.SRGBColorSpace;
+  return youTex;
+}
+
 function labelTexture(name, hearts, color) {
   const key = `${name}|${hearts}|${color}`;
   let t = labelCache.get(key);
@@ -163,6 +188,14 @@ export function createPuck(info, isMe = false) {
   const body = mesh(sphereGeo, bodyMat, [1, 0.92, 1], [0, 0, 0]);
   body.receiveShadow = false;
   wob.add(body);
+
+  if (isMe) {
+    // gold outline hull: only my creature has it, so I can find myself in a crowd
+    const hull = mesh(sphereGeo, new THREE.MeshBasicMaterial({ color: '#ffe14d', side: THREE.BackSide }), [1.12, 1.04, 1.12], [0, 0, 0]);
+    hull.castShadow = false;
+    hull.receiveShadow = false;
+    wob.add(hull);
+  }
 
   const face = new THREE.Group();
   wob.add(face);
@@ -218,6 +251,10 @@ export function createPuck(info, isMe = false) {
 
   const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTexture(info.name, info.lives ?? 0, '#fff'), depthWrite: false, transparent: true }));
   label.scale.set(270, 84, 1);
+  if (isMe) {
+    label.material.depthTest = false;
+    label.renderOrder = 19;
+  }
   root.add(label);
 
   const you = new THREE.Mesh(coneGeo, mat('#ffe14d', { emissive: '#ffcc00', emissiveIntensity: 0.8 }), [18, 34, 18]);
@@ -228,12 +265,24 @@ export function createPuck(info, isMe = false) {
   you.castShadow = false;
   root.add(you);
 
+  let halo = null;
+  let youTag = null;
+  if (isMe) {
+    const haloGeo = new THREE.RingGeometry(1.5, 2.1, 48, 1);
+    haloGeo.rotateX(-Math.PI / 2);
+    halo = new THREE.Mesh(haloGeo, new THREE.MeshBasicMaterial({ color: '#ffe14d', transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+    root.add(halo);
+    youTag = new THREE.Sprite(new THREE.SpriteMaterial({ map: youTexture(), depthWrite: false, depthTest: false, transparent: true }));
+    youTag.renderOrder = 20;
+    root.add(youTag);
+  }
+
   const shield = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({ color: '#8ee8ff', transparent: true, opacity: 0.28, depthWrite: false, blending: THREE.AdditiveBlending }));
   shield.visible = false;
   root.add(shield);
 
   return {
-    root, wob, body, face, eyes, mouth, ring, ringIdx, ringGeo, disc, label, you, shield, hatG,
+    root, wob, body, face, eyes, mouth, ring, ringIdx, ringGeo, disc, label, you, halo, youTag, shield, hatG,
     info, isMe,
     heading: info.angle || 0,
     wobble: 0,
@@ -352,7 +401,7 @@ export function updatePuck(o, v, dt, now, ctx) {
 
   // name tag
   const hearts = v.lives;
-  const lc = v.teamColor || '#ffffff';
+  const lc = v.teamColor || (o.isMe ? '#ffe14d' : '#ffffff');
   if (hearts !== o.lastHearts || lc !== o.lastLabelColor) {
     o.lastHearts = hearts;
     o.lastLabelColor = lc;
@@ -362,9 +411,19 @@ export function updatePuck(o, v, dt, now, ctx) {
   o.label.position.set(0, r * 1.6 + 85 * ctx.ui, 0);
   o.label.scale.set(270 * ctx.ui, 84 * ctx.ui, 1);
   o.label.visible = v.state === 'live' && v.id !== 0;
-  o.you.visible = o.isMe && v.state === 'live';
+  o.you.visible = false; // the YOU tag replaces the old arrow
   o.you.scale.set(26 * ctx.ui, 48 * ctx.ui, 26 * ctx.ui);
   o.you.position.set(0, r * 1.6 + 190 * ctx.ui + Math.sin(now / 200) * 12, 0);
+  if (o.halo) {
+    const pulse = 1 + Math.sin(now / 170) * 0.08;
+    o.halo.visible = v.state === 'live';
+    o.halo.position.set(0, 4 - y, 0);
+    o.halo.scale.setScalar(r * 1.05 * pulse);
+    o.halo.material.opacity = 0.55 + Math.sin(now / 170) * 0.25;
+    o.youTag.visible = v.state === 'live';
+    o.youTag.position.set(0, r * 1.6 + 215 * ctx.ui + Math.sin(now / 200) * 12, 0);
+    o.youTag.scale.set(150 * ctx.ui, 64 * ctx.ui, 1);
+  }
 }
 
 export function bumpPuck(o, strength) {
