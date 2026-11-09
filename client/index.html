@@ -149,14 +149,11 @@
       <section id="howto" class="screen overlay" hidden role="dialog" aria-modal="true" aria-labelledby="howtoTitle">
         <div class="card howto">
           <h2 id="howtoTitle">How to play</h2>
-          <ol class="steps">
-            <li><i aria-hidden="true">&#x1F3AF;</i><p><b>Aim and flick.</b> <span id="howtoControls"></span></p></li>
-            <li><i aria-hidden="true">&#x1F4A5;</i><p><b>Bonk your rivals</b> off the island. Crash into them hard!</p></li>
-            <li><i aria-hidden="true">&#x1F36C;</i><p><b>The floor crumbles</b> from the edge. Tiles that flash will fall, so move toward the middle.</p></li>
-            <li><i aria-hidden="true">&#x2764;&#xFE0F;</i><p><b>You have 3 hearts.</b> Fall off and you lose one, then come back with a shield. Last one standing wins!</p></li>
-            <li><i aria-hidden="true">&#x1F48E;</i><p><b>Grab gems and glowing orbs</b> for coins and power-ups.</p></li>
-          </ol>
-          <p class="whoyou">Look for the <b class="youchip">YOU</b> tag and the purple ring. That is your creature.</p>
+          <div class="demo" id="demo" data-dev="touch" role="img" aria-label="Animation: a player drags back and flicks their creature into a rival, who flies off the island. The outer tiles then crumble and the player wins.">
+            <svg viewBox="0 0 320 200" aria-hidden="true"><g class="scene" id="demoScene"></g></svg>
+            <span class="demo-cap" id="demoCap"></span>
+          </div>
+          <p class="howtext">Aim and flick your creature to bonk rivals off the island. Stay on the tiles, grab gems and be the last one standing!</p>
           <button class="btn play" id="btnHowtoGo" type="button">Got it!</button>
         </div>
       </section>

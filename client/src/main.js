@@ -1025,13 +1025,79 @@ try {
   /* storage blocked: show the guide each visit */
 }
 let howtoThen = null;
-const CONTROLS = {
-  touch: 'Drag back anywhere on the screen like a slingshot, then let go to launch your creature the other way.',
-  mouse: 'Point the mouse where you want to go. Click for a quick bonk, or hold the button to charge more power, then let go. Arrow keys or A and D also turn the aim, and Space flicks.',
-};
+const DEMO_CAPS = { touch: 'Drag back, then let go', mouse: 'Point, click, let go' };
+let demoBuilt = false;
+function buildDemo() {
+  if (demoBuilt) return;
+  demoBuilt = true;
+  const NS = 'http://www.w3.org/2000/svg';
+  const add = (parent, tag, attrs) => {
+    const n = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    parent.append(n);
+    return n;
+  };
+  const scene = $('demoScene');
+  const fills = ['#ff6fa0', '#4fc3ff', '#ffd23f'];
+  const size = 21;
+  const tiles = add(scene, 'g', {});
+  let k = 0;
+  for (let q = -2; q <= 2; q++) {
+    for (let r = Math.max(-2, -q - 2); r <= Math.min(2, -q + 2); r++) {
+      const ring = Math.max(Math.abs(q), Math.abs(r), Math.abs(-q - r));
+      const x = 160 + size * Math.sqrt(3) * (q + r / 2);
+      const y = 100 + size * 1.5 * r;
+      const pts = Array.from({ length: 6 }, (_, i) => {
+        const a = (Math.PI / 3) * i + Math.PI / 6;
+        return `${(x + (size - 1.5) * Math.cos(a)).toFixed(1)},${(y + (size - 1.5) * Math.sin(a)).toFixed(1)}`;
+      }).join(' ');
+      const t = add(tiles, 'polygon', { points: pts, fill: fills[(q - r + 9) % 3], class: ring === 2 ? 'tile edge' : 'tile' });
+      if (ring === 2) t.style.animationDelay = `${(k++ % 6) * 0.05}s`;
+    }
+  }
+  // aim dots + power bar
+  const dots = add(scene, 'g', { class: 'aimdots' });
+  for (let i = 0; i < 5; i++) add(dots, 'circle', { cx: 134 + i * 14, cy: 105, r: 2.2 + i * 0.5, fill: '#fff' });
+  add(scene, 'rect', { x: 100, y: 176, width: 120, height: 10, rx: 5, fill: '#fff', stroke: '#2b2150', 'stroke-width': 2 });
+  add(scene, 'rect', { x: 101, y: 177, width: 118, height: 8, rx: 4, fill: '#8be04e', class: 'power' });
+  // rival
+  const rival = add(scene, 'g', { class: 'rival' });
+  add(rival, 'circle', { cx: 215, cy: 98, r: 14, fill: '#46d6b0', stroke: '#2b2150', 'stroke-width': 2.5 });
+  for (const dx of [-5, 5]) add(rival, 'circle', { cx: 215 + dx, cy: 95, r: 2.4, fill: '#2b2150' });
+  add(rival, 'ellipse', { cx: 215, cy: 103, rx: 3, ry: 2, fill: '#4a1f3a' });
+  // me
+  const me = add(scene, 'g', { class: 'me' });
+  add(me, 'ellipse', { cx: 110, cy: 107, rx: 24, ry: 11, fill: 'none', stroke: '#fff', 'stroke-width': 7 });
+  add(me, 'ellipse', { cx: 110, cy: 107, rx: 24, ry: 11, fill: 'none', stroke: '#6a2cff', 'stroke-width': 4.5 });
+  add(me, 'circle', { cx: 110, cy: 100, r: 15, fill: '#ff6fa0', stroke: '#6a2cff', 'stroke-width': 3.5 });
+  for (const dx of [-5, 5]) {
+    add(me, 'circle', { cx: 110 + dx, cy: 97, r: 3, fill: '#fff' });
+    add(me, 'circle', { cx: 110 + dx, cy: 97.5, r: 1.5, fill: '#2b2150' });
+  }
+  const tag = add(me, 'g', {});
+  add(tag, 'rect', { x: 94, y: 66, width: 32, height: 15, rx: 7.5, fill: '#6a2cff', stroke: '#fff', 'stroke-width': 2 });
+  const yt = add(tag, 'text', { x: 110, y: 77.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 10, 'font-weight': 800 });
+  yt.textContent = 'YOU';
+  // pointers
+  const finger = add(scene, 'text', { x: 108, y: 140, 'font-size': 26, class: 'pt touch' });
+  finger.textContent = '\u{1F446}';
+  const mouse = add(scene, 'path', { d: 'M0 0 L0 17 L4.5 13 L7.5 20 L10.5 18.7 L7.6 12 L13 12 Z', fill: '#fff', stroke: '#2b2150', 'stroke-width': 1.6, 'stroke-linejoin': 'round', class: 'pt mouse' });
+  void mouse;
+  // bonk burst, crown
+  const bonk = add(scene, 'text', { x: 205, y: 80, 'text-anchor': 'middle', 'font-size': 22, 'font-weight': 800, fill: '#ffd23f', stroke: '#2b2150', 'stroke-width': 4, 'paint-order': 'stroke', class: 'bonk' });
+  bonk.textContent = 'BONK!';
+  const crown = add(scene, 'text', { x: 168, y: 60, 'text-anchor': 'middle', 'font-size': 24, class: 'crown' });
+  crown.textContent = '\u{1F451}';
+}
+function setDemoDevice() {
+  const d = input.device === 'touch' ? 'touch' : 'mouse';
+  $('demo').dataset.dev = d;
+  $('demoCap').textContent = DEMO_CAPS[d];
+}
 function showHowto(then = null) {
   howtoThen = then;
-  $('howtoControls').textContent = CONTROLS[input.device === 'touch' ? 'touch' : 'mouse'];
+  buildDemo();
+  setDemoDevice();
   $('btnHowtoGo').textContent = then ? "Got it, let's play!" : 'Got it!';
   el.howto.hidden = false;
   $('btnHowtoGo').focus();
