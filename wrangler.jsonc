@@ -29,6 +29,8 @@
   ],
   "vars": {
     // Hostnames allowed to open game WebSockets. Not secret. Add portal/preview hosts if needed.
+    // Google OAuth *web client id*: public by design (it ships in page HTML). Empty = Google sign-in hidden.
+    "GOOGLE_CLIENT_ID": "",
     "ALLOWED_HOSTS": "playbonkroyale.com,www.playbonkroyale.com,localhost,127.0.0.1,*.workers.dev"
   },
   "observability": { "enabled": true }

@@ -3,6 +3,7 @@ import '@fontsource/baloo-2/800.css';
 import './ui.css';
 import { C, MODES, pointToHex } from '../../shared/sim.js';
 import { DIFFS, diffOf } from '../../shared/difficulty.js';
+import { mountAccountBox } from './account.js';
 import { KINDS, COLORS, HATS, TRAILS, EMOTES, RARITY, nameOf, randomName, displayName, levelProgress } from '../../shared/cosmetics.js';
 import { checkName, NAME_MAX } from '../../shared/names.js';
 import { Stage } from './scene.js';
@@ -517,6 +518,7 @@ function startOnline({ mode: m, room = '' }) {
     onResults: (r) => {
       finished = true;
       if (r.profile) store.adopt(r.profile, store.giftOk);
+      nudgeSave();
       payload = {
         mine: r.mine,
         reward: r.reward || { xp: 0, coins: 0, levelBefore: store.level, levelAfter: store.level, levelCapsules: 0 },
@@ -1160,6 +1162,7 @@ for (const b of document.querySelectorAll('[data-diff]')) {
       /* best effort */
     }
     showDiff();
+    if (api.remote) api.req('/api/prefs', { diff }).catch(() => {});
     if (partyLink.active && partyState && partyState.leader === store.data.id) partyLink.send({ t: 'diff', v: diff });
   });
 }
@@ -1175,6 +1178,13 @@ $('btnStyle').addEventListener('click', () => {
   $('styleSheet').hidden = false;
   $('friendsSheet').hidden = true;
 });
+let renderAccount = () => {};
+/** Soft, rare reminder after a few matches. Never blocks play. */
+function nudgeSave() {
+  const d = store.data;
+  if (!api.remote || d.linked || ![1, 5, 15].includes(d.matches)) return;
+  setTimeout(() => toast('Save your progress so you never lose it!', 7000, [['Save', openProgress], ['Later', () => {}]]), 4000);
+}
 function renderProgress() {
   const d = store.data;
   const p = levelProgress(d.xp);
@@ -1207,9 +1217,7 @@ function renderProgress() {
       return c;
     })
   );
-  $('saveBox').textContent = api.remote
-    ? 'Your progress is saved to this device. Sign in to keep it safe and play anywhere!'
-    : 'Offline practice: progress stays on this device.';
+  renderAccount();
 }
 function openProgress() {
   sfx.click();
@@ -1218,6 +1226,7 @@ function openProgress() {
   $('styleSheet').hidden = true;
   $('friendsSheet').hidden = true;
 }
+renderAccount = mountAccountBox($('saveBox'), { store, toast, sfx });
 $('meCard').addEventListener('click', openProgress);
 $('btnProgStyle').addEventListener('click', () => {
   $('progressSheet').hidden = true;
@@ -1408,6 +1417,10 @@ async function boot() {
   try {
     const me = await api.ensureAccount();
     store.adopt(me.profile, me.giftReady);
+    if (me.profile.prefs && me.profile.prefs.diff) {
+      diff = diffOf(me.profile.prefs.diff);
+      showDiff();
+    }
     social.start();
     const join = (params.get('join') || '').toUpperCase();
     if (/^[A-HJ-NP-Z2-9]{5}$/.test(join)) {

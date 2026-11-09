@@ -1,5 +1,6 @@
 // JSON API: accounts, profile actions, friends, invites. Auth is a bearer token (no cookies, so no CSRF).
-import { createUser, loadByToken, loadByCode, loadUser, saveUser, card, ownProfile } from './db.js';
+import { createUser, loadByToken, loadByCode, loadUser, saveUser, card, ownProfile, loadByGoogle, linkGoogle, addDevice, removeDevice, savePrefs, touchSeen, deleteUser, exportUser, isFresh } from './db.js';
+import { verifyGoogleToken } from './auth.js';
 import { touchDay, giftReady, claimGift, equip, openCapsule } from '../shared/progress.js';
 import { randomName } from '../shared/cosmetics.js';
 import { checkName } from '../shared/names.js';
@@ -14,9 +15,9 @@ export async function authedUser(request, env) {
   return m ? loadByToken(env, m[1]) : null;
 }
 
-async function readBody(request) {
+async function readBody(request, max = 2048) {
   const text = await request.text();
-  if (text.length > 2048) throw new Error('too large');
+  if (text.length > max) throw new Error('too large');
   return text ? JSON.parse(text) : {};
 }
 
@@ -29,6 +30,7 @@ export async function handleApi(request, env) {
 
   try {
     if (path === '/api/health') return json({ ok: true });
+    if (path === '/api/config') return json({ googleClientId: env.GOOGLE_CLIENT_ID || '' });
 
     if (path === '/api/register' && method === 'POST') {
       if (!(await allow(env, 'reg:' + clientIp(request), 12, 3600))) return fail('Too many new accounts from this network. Try again later.', 429);
@@ -44,11 +46,12 @@ export async function handleApi(request, env) {
       const before = structuredClone(me);
       const changed = touchDay(me);
       if (changed) await saveUser(env, before, me);
+      await touchSeen(env, me.id);
       return json({ profile: ownProfile(me), giftReady: giftReady(me) });
     }
 
     if (method !== 'POST' && method !== 'GET') return fail('Method not allowed', 405);
-    const body = method === 'POST' ? await readBody(request) : {};
+    const body = method === 'POST' ? await readBody(request, path === '/api/auth/google' ? 4096 : 2048) : {};
     const before = structuredClone(me);
 
     if (path === '/api/equip') {
@@ -75,6 +78,22 @@ export async function handleApi(request, env) {
       me.coins += 30;
       await saveUser(env, before, me);
       return json({ profile: ownProfile(me) });
+    }
+    if (path === '/api/prefs') {
+      await savePrefs(env, me.id, body);
+      return json({ ok: true });
+    }
+    if (path === '/api/auth/google') return googleSignIn(request, env, me, body);
+    if (path === '/api/auth/signout') {
+      const token = (request.headers.get('Authorization') || '').slice(7);
+      await removeDevice(env, token);
+      return json({ ok: true });
+    }
+    if (path === '/api/account/export' && method === 'GET') return json(await exportUser(env, me));
+    if (path === '/api/account/delete') {
+      if (body.confirm !== 'DELETE') return fail('Confirmation missing');
+      await deleteUser(env, me.id);
+      return json({ ok: true });
     }
     if (path === '/api/name/reroll') {
       me.name = randomName();
@@ -156,6 +175,41 @@ export async function handleApi(request, env) {
     console.error('api error', path, String(e));
     return fail('Something went wrong. Please try again.', 500);
   }
+}
+
+/**
+ * Link this device's account to a Google account, or switch to the account already linked.
+ * Never silently overwrites progress: real progress on both sides asks the player to choose.
+ */
+async function googleSignIn(request, env, me, body) {
+  if (!(await allow(env, 'gauth:' + clientIp(request), 20, 600))) return fail('Too many sign-in tries. Wait a few minutes.', 429);
+  const g = await verifyGoogleToken(body.credential, env.GOOGLE_CLIENT_ID);
+  if (!g) return fail('Google sign-in did not check out. Please try again.', 401);
+  const saved = await loadByGoogle(env, g.sub);
+  if (!saved) {
+    await linkGoogle(env, me.id, g);
+    return json({ status: 'linked', profile: ownProfile(await loadUser(env, me.id)) });
+  }
+  if (saved.id === me.id) {
+    await touchSeen(env, me.id);
+    return json({ status: 'same', profile: ownProfile(saved) });
+  }
+  const choice = body.resolve;
+  if (isFresh(me) || choice === 'account') {
+    // switch this device to the saved account; the empty/unwanted guest row is removed
+    const token = await addDevice(env, saved.id);
+    await deleteUser(env, me.id);
+    await touchSeen(env, saved.id);
+    return json({ status: 'switched', token, profile: ownProfile(saved) });
+  }
+  if (choice === 'device') {
+    // keep this device's progress: it replaces the saved account (the player confirmed this)
+    await deleteUser(env, saved.id);
+    await linkGoogle(env, me.id, g);
+    return json({ status: 'linked', profile: ownProfile(await loadUser(env, me.id)) });
+  }
+  const sum = (p) => ({ xp: p.xp, coins: p.coins, matches: p.matches, wins: p.wins, name: p.alias || p.name, kind: p.kind, col: p.col });
+  return json({ status: 'conflict', device: sum(me), account: sum(saved) });
 }
 
 async function addFriend(env, me, other) {

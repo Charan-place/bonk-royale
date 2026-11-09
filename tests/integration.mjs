@@ -30,6 +30,21 @@ ok((await call(ta, '/api/equip', { type: 'col', idx: 3 })).status === 200, 'equi
 ok((await call(ta, '/api/capsule/open', {})).status === 400, 'no capsule yet');
 const gift = await call(ta, '/api/gift/claim', {}); ok(gift.status === 200 && gift.data.gift.coins >= 55, 'daily gift +' + gift.data.gift?.coins);
 ok((await call(ta, '/api/gift/claim', {})).status === 400, 'gift only once a day');
+// 2b) prefs, Google sign-in guard, export, delete
+ok((await call(ta, '/api/prefs', { diff: 'hard', sound: false, evil: 'x' })).status === 200, 'prefs saved');
+{
+  const me = await call(ta, '/api/me'); ok(me.data.profile.prefs.diff === 'hard' && me.data.profile.prefs.sound === false && !('evil' in me.data.profile.prefs), 'prefs round-trip, unknown keys dropped');
+  ok(me.data.profile.linked === false, 'new account is not linked');
+}
+ok((await call(ta, '/api/auth/google', { credential: 'a.b.c' })).status === 401, 'bad Google token rejected');
+ok((await call(null, '/api/auth/google', { credential: 'a.b.c' })).status === 401, 'Google sign-in needs a device account');
+{
+  const t = (await call(null, '/api/register', {})).data.token;
+  const ex = await call(t, '/api/account/export'); ok(ex.status === 200 && ex.data.profile.code, 'export my data');
+  ok((await call(t, '/api/account/delete', {})).status === 400, 'delete needs confirmation');
+  ok((await call(t, '/api/account/delete', { confirm: 'DELETE' })).status === 200, 'account deleted');
+  ok((await call(t, '/api/me')).status === 401, 'deleted account token is dead');
+}
 // 3) friends
 ok((await call(ta, '/api/friends/add', { code: 'BONK-ZZZZZ' })).status === 404, 'unknown code 404');
 ok((await call(ta, '/api/friends/add', { code: pa.code })).status === 400, 'cannot add yourself');

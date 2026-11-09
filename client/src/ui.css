@@ -294,3 +294,12 @@ html:has(.doc), body:has(.doc) { overflow: auto; }
 @keyframes dFinger { 0%, 8% { opacity: 0; transform: translateX(0); } 11% { opacity: 1; transform: translateX(0); } 29% { opacity: 1; transform: translateX(-30px); } 32%, 100% { opacity: 0; transform: translateX(-30px); } }
 @keyframes dMouse { 0%, 6% { opacity: 0; transform: translate(150px, 150px); } 8% { opacity: 1; transform: translate(150px, 150px); } 22% { opacity: 1; transform: translate(222px, 102px); } 24% { opacity: 1; transform: translate(222px, 102px) scale(.82); } 31% { opacity: 1; transform: translate(222px, 102px) scale(.82); } 33% { opacity: 1; transform: translate(222px, 102px) scale(1); } 36%, 100% { opacity: 0; transform: translate(222px, 102px); } }
 @media (prefers-reduced-motion: reduce) { .scene, .demo *, .dstep, .demo-dots i { animation: none !important; } .dstep { opacity: 1; position: static; } .dstep.s2, .dstep.s3 { display: none; } .demo .touch, .demo .mouse, .demo .bonk, .demo .crown { opacity: 0; } }
+
+/* account box (Google sign-in) */
+.acct-line { margin: 0 0 8px; font-weight: 700; }
+.acct-line.ok { color: #14703a; }
+.acct-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.acct-google, .gsi-slot { min-height: 44px; display: flex; justify-content: center; }
+.acct-choice { display: grid; gap: 4px; background: #fff; border: 3px solid var(--ink); border-radius: 14px; padding: 8px 10px; margin-bottom: 8px; }
+.acct-choice span { font-weight: 600; font-size: 14px; }
+.btn.danger { color: #b3261e; }
