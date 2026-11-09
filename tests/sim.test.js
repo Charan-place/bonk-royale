@@ -138,3 +138,11 @@ test('difficulty tiers: unknown falls back to easy, harder pays more', async () 
   assert.ok(DIFFS.easy.skill < DIFFS.medium.skill && DIFFS.medium.skill < DIFFS.hard.skill);
   assert.ok(DIFFS.hard.mult > DIFFS.easy.mult);
 });
+
+test('custom names: clean ones pass, unsafe ones are rejected', async () => {
+  const { checkName } = await import('../shared/names.js');
+  assert.deepEqual(checkName('  Super   Bonk '), { ok: true, name: 'Super Bonk' });
+  for (const bad of ['ab', 'x'.repeat(15), 'a@b.com', 'www.site.com', 'f.u.c.k', 'Sh1t', 'fuuuck', 'N4zi boy', '1234567', 'héllo', '<b>hi</b>', ''])
+    assert.equal(checkName(bad).ok, false, bad);
+  assert.equal(checkName(null).ok, false);
+});
