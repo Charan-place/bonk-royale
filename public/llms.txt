@@ -1,0 +1,29 @@
+# Bonk Games
+
+> Bonk Games is a family of free browser games for kids and adults, with one account and one level shared across all of them. No download, no chat, and it works on phones, tablets and computers. Playing as a guest is allowed. Signing in with Google is optional, for ages 13 and over, and saves progress across devices.
+
+Site: https://playbonkroyale.com
+
+## Games
+
+- [Bonk Royale](https://playbonkroyale.com/): Multiplayer party brawler. Flick your creature to knock rivals off a crumbling candy island. Free for all, 1 vs 1 or Teams, with bots or friends.
+- [Bonk Golf](https://playbonkroyale.com/play/golf/): Flick-and-aim mini golf with bumpers, ice and portals. 40 courses, up to 3 stars each.
+- [Bonk Merge](https://playbonkroyale.com/play/merge/): Drop creatures, merge matching ones into bigger ones and reach the Legendary Bonk.
+- [Hot Potato Bonk](https://playbonkroyale.com/play/potato/): Pass the bomb by bumping rivals. Whoever holds it when the fuse ends is out. Played against bots.
+- [Bonk Rush](https://playbonkroyale.com/play/rush/): One-thumb endless runner across icy platforms. Tap to jump, grab gems, dodge cones.
+- [Daily Bonk](https://playbonkroyale.com/play/daily/): One puzzle a day, the same for everyone. Crack a secret lineup of 4 creatures in 8 tries.
+
+## Facts
+
+- Price: free. Platform: web browser on any device. Audience: ages 5 and up.
+- Safety: no chat, no real names shown, only made-up game names. Guests need no account.
+- Accounts: optional Google sign-in (ages 13+). Under-13 players are not offered sign-in.
+- Hub with all games: https://playbonkroyale.com/games/
+
+## Pages
+
+- [How to play](https://playbonkroyale.com/how-to-play.html)
+- [About](https://playbonkroyale.com/about.html)
+- [Privacy policy](https://playbonkroyale.com/privacy.html)
+- [Terms](https://playbonkroyale.com/terms.html)
+- [Contact](https://playbonkroyale.com/contact.html)
