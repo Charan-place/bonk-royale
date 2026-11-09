@@ -8,6 +8,7 @@ import { api, store, bootAccount } from '../platform/run.js';
 import { KIND_ICONS } from '../platform/creature.js';
 import { byId } from '../platform/catalog.js';
 import { COLORS, displayName, levelProgress } from '../../../shared/cosmetics.js';
+import '../platform/pwa.js';
 import { initAds } from '../ads.js';
 import { sfx } from '../audio.js';
 

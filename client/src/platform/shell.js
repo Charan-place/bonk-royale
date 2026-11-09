@@ -9,6 +9,7 @@ import { levelOf, displayName } from '../../../shared/cosmetics.js';
 import { KIND_ICONS } from './creature.js';
 import { CATALOG, byId } from './catalog.js';
 import { sfx, audioPrefs } from '../audio.js';
+import './pwa.js';
 import { initAds } from '../ads.js';
 
 const h = (tag, cls, text) => {

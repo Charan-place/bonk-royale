@@ -38,11 +38,11 @@ Do them in order. Each step ships on its own and leaves the site working.
 | Sign out | Back to a fresh guest on this device; the account stays safe on the server. |
 
 ### Steps
-- [ ] **1.1 Backend**: migration 0003, `/api/auth/google` (verify token, link/switch per rules), `/api/auth/signout`, JWKS verify in `src/auth.js` using WebCrypto (no new dependency), rate limit it, unit tests with a fake signed token.
-- [ ] **1.2 Client**: "Save my progress" button (Google), signed-in badge with avatar initial and name, sign out, conflict dialog, progress sheet text updated ("Saved to your account"). Guest play stays fully allowed.
-- [ ] **1.3 Nudges**: after first win / level 3 / first unlock, show a soft "Save your progress" card. Never blocks play.
-- [ ] **1.4 Preferences synced**: difficulty, name, sound, tutorial-seen restored on any device.
-- [ ] **1.5 Privacy**: update `privacy.html` (what we store: Google id, email, game data; why), add "Delete my account and data" button (hard delete across all tables), and a data-export link.
+- [x] **1.1 Backend**: migration 0003, `/api/auth/google` (verify token, link/switch per rules), `/api/auth/signout`, JWKS verify in `src/auth.js` using WebCrypto (no new dependency), rate limit it, unit tests with a fake signed token.
+- [x] **1.2 Client**: "Save my progress" button (Google), signed-in badge with avatar initial and name, sign out, conflict dialog, progress sheet text updated ("Saved to your account"). Guest play stays fully allowed.
+- [x] **1.3 Nudges**: after first win / level 3 / first unlock, show a soft "Save your progress" card. Never blocks play.
+- [x] **1.4 Preferences synced**: difficulty, name, sound, tutorial-seen restored on any device.
+- [x] **1.5 Privacy**: update `privacy.html` (what we store: Google id, email, game data; why), add "Delete my account and data" button (hard delete across all tables), and a data-export link.
 - [ ] **1.6 Verify on prod**: sign in on laptop, play, sign in on phone, same account, same level.
 
 ### Child safety (decision needed, my default in bold)
@@ -112,13 +112,13 @@ Each gets a one-page design brief before code (controls on phone/tablet/desktop,
 - Test matrix before each release: iPhone Safari, Android Chrome, iPad, Chrome/Safari/Firefox desktop, a low-end Android in throttled mode.
 
 ### Milestones
-- [ ] **2.1 Foundation refactor**: split platform vs game, move Royale into `games/royale` with zero behaviour change, hub page, routes, per-game SEO, tests still green.
-- [ ] **2.2 Shared systems v1**: unified level/wallet, leaderboard endpoint + table, score proof verification, daily quest + family streak.
-- [ ] **2.3 Game 1: Bonk Golf** (design brief → vertical slice with 10 courses → polish → 40+ courses → daily course → ship).
-- [ ] **2.4 Game 2: Bonk Merge**.
-- [ ] **2.5 Game 3: Hot Potato Bonk** (multiplayer, on the existing party/room code).
-- [ ] **2.6 PWA + install prompt + offline** for solo games.
-- [ ] **2.7 Game 4 and 5** (Bonk Rush, Daily Bonk) based on what players actually play.
+- [x] **2.1 Foundation refactor**: split platform vs game, move Royale into `games/royale` with zero behaviour change, hub page, routes, per-game SEO, tests still green.
+- [x] **2.2 Shared systems v1**: unified level/wallet, leaderboard endpoint + table, score proof verification, daily quest + family streak.
+- [x] **2.3 Game 1: Bonk Golf** (design brief → vertical slice with 10 courses → polish → 40+ courses → daily course → ship).
+- [x] **2.4 Game 2: Bonk Merge**.
+- [x] **2.5 Game 3: Hot Potato Bonk** (multiplayer, on the existing party/room code).
+- [x] **2.6 PWA + install prompt + offline** for solo games.
+- [x] **2.7 Game 4 and 5** (Bonk Rush, Daily Bonk) based on what players actually play.
 - [ ] **2.8 Growth loop**: share cards, sitemap per game, Search Console, friends-invite across games.
 
 ---
@@ -136,5 +136,11 @@ Each gets a one-page design brief before code (controls on phone/tablet/desktop,
 3. Keep the `playbonkroyale.com` domain for the family for now, and rename later?
 4. Google OAuth client id (after you create it, see Part 1).
 
-## Next action
+## Status (built, waiting for you)
+- Built and tested locally: Google sign-in backend + UI, hub at `/games/`, Golf (40 courses), Merge, Hot Potato (vs bots), Rush, Daily, scores/leaderboards/quest API, PWA.
+- **Google sign-in stays hidden until `GOOGLE_CLIENT_ID` is set in `wrangler.jsonc`** (needs the OAuth client id from you, 1.6 verify on prod).
+- Hot Potato is vs bots; online multiplayer for it is a later step. 2.8 growth loop (share cards, Search Console) is still open.
+- Deploy needs migrations 0003 and 0004: `npx wrangler d1 migrations apply bonk-db --remote` then `npx wrangler deploy`.
+
+## Next action (old)
 Say "go" and I start **1.1 Backend** (Google token verification, migration 0003, tests) on a new branch. You create the Google OAuth client in parallel; I only need its id for 1.2.
