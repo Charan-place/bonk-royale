@@ -174,6 +174,8 @@ export async function handleApi(request, env) {
     }
     return fail('Not found', 404);
   } catch (e) {
+    if (e && e.message === 'too large') return fail('That is too much data.', 413);
+    if (e instanceof SyntaxError) return fail('Bad request');
     console.error('api error', path, String(e));
     return fail('Something went wrong. Please try again.', 500);
   }

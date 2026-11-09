@@ -410,6 +410,11 @@ function showcaseView() {
   };
 }
 
+try {
+  localStorage.setItem('bonk_last_game', 'royale');
+} catch {
+  /* ignore */
+}
 function goHome() {
   if (session) session.close();
   session = null;
@@ -1422,6 +1427,10 @@ async function boot() {
       showDiff();
     }
     social.start();
+    if (params.get('save') === '1') {
+      history.replaceState(null, '', location.pathname);
+      openProgress();
+    }
     const join = (params.get('join') || '').toUpperCase();
     if (/^[A-HJ-NP-Z2-9]{5}$/.test(join)) {
       history.replaceState(null, '', location.pathname);
