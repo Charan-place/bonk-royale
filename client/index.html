@@ -29,6 +29,7 @@
         <ol id="feed" aria-live="polite"></ol>
         <div id="callouts" aria-live="assertive"></div>
         <div id="count"></div>
+        <div id="power" hidden aria-hidden="true"><u id="powerFill"></u></div>
         <div id="hint" hidden><span class="hand">&#x1F446;</span><b>Drag back &amp; let go to flick!</b></div>
         <button class="hud-btn big" id="btnEmote" type="button" aria-label="Emotes">&#x1F600;</button>
         <div class="emote-wheel" id="emoteWheel" hidden></div>
@@ -57,6 +58,11 @@
             <button class="mode on" data-mode="ffa" type="button" role="radio" aria-checked="true">Free for all</button>
             <button class="mode" data-mode="duel" type="button" role="radio" aria-checked="false">1 vs 1</button>
             <button class="mode" data-mode="team" type="button" role="radio" aria-checked="false">Teams</button>
+          </div>
+          <div class="modes diffs" role="radiogroup" aria-label="Difficulty">
+            <button class="mode" data-diff="easy" type="button" role="radio" aria-checked="false">&#x1F642; Easy</button>
+            <button class="mode" data-diff="medium" type="button" role="radio" aria-checked="false">&#x1F60E; Medium</button>
+            <button class="mode" data-diff="hard" type="button" role="radio" aria-checked="false">&#x1F525; Hard</button>
           </div>
           <button class="btn play" id="btnPlay" type="button">PLAY!</button>
           <div class="row">
@@ -101,6 +107,17 @@
         <div class="tabs" role="tablist" id="styleTabs"></div>
         <div class="grid" id="styleGrid"></div>
         <div class="namebar"><b id="styleName"></b><button class="btn small alt" id="btnDice" type="button">&#x1F3B2; New name</button></div>
+      </section>
+
+      <section id="progressSheet" class="sheet" hidden>
+        <div class="sheet-head"><b>My progress</b><button class="hud-btn" data-close type="button" aria-label="Close">&#x2715;</button></div>
+        <div class="prog-top">
+          <span class="avatar" id="progAvatar"></span>
+          <div class="prog-who"><b id="progName"></b><span id="progLvl"></span><span class="xp wide"><u id="progXp"></u></span><small id="progNext"></small></div>
+        </div>
+        <div class="stats" id="progStats"></div>
+        <div class="save-box" id="saveBox"></div>
+        <button class="btn small alt" id="btnProgStyle" type="button">&#x1F3A8; Change look</button>
       </section>
 
       <section id="lobby" class="screen overlay" hidden>

@@ -130,3 +130,11 @@ test('losing a heart respawns the puck on solid ground with a shield', () => {
   assert.ok(tileAt(m, p.x, p.y) >= 0);
   assert.ok(p.shieldT > 0 || p.cd >= 0);
 });
+
+test('difficulty tiers: unknown falls back to easy, harder pays more', async () => {
+  const { DIFFS, diffOf } = await import('../shared/difficulty.js');
+  assert.equal(diffOf('nope'), 'easy');
+  assert.equal(diffOf('__proto__'), 'easy');
+  assert.ok(DIFFS.easy.skill < DIFFS.medium.skill && DIFFS.medium.skill < DIFFS.hard.skill);
+  assert.ok(DIFFS.hard.mult > DIFFS.easy.mult);
+});
